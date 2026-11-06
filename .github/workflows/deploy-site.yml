@@ -53,13 +53,12 @@ jobs:
         with:
           path: site
 
-      - name: Upload APK artifact
+      - name: Upload site artifact (wordbooks; APK offline on Pages)
         uses: actions/upload-artifact@v4
         with:
-          name: site-apk
+          name: site-files
           path: |
-            site/Vocabulary-*.apk
-            site/cet4.apk
+            site/index.html
             site/wordbooks/*.db
 
   deploy:

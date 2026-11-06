@@ -29,8 +29,18 @@ from datetime import datetime, timezone
 ver = "${VERSION}"
 apk = "Vocabulary-${VERSION}.apk"
 html = Path("web/index.html").read_text(encoding="utf-8")
+block = """      <table width="72%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" bgcolor="#2E7D32">
+            <a href="%s" style="display:block;width:100%%;padding:12px 8px;text-decoration:none;color:#FFFFFF;">
+              <font face="Helvetica, Arial, sans-serif" color="#FFFFFF" size="4"><b>下载 App v%s</b></font>
+            </a>
+          </td>
+        </tr>
+      </table>""" % (apk, ver)
 html = (
-    html.replace("__VERSION__", ver)
+    html.replace("__DOWNLOAD_BLOCK__", block)
+    .replace("__VERSION__", ver)
     .replace("__APK__", apk)
     .replace("__BASE__", "")
     .replace("__BUILD_INFO__", "本地 dist · " + datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))

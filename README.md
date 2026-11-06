@@ -6,8 +6,10 @@ BlackBerry Q10（720×720 / Android 4.3）英语词库 App。
 
 ```bash
 ./gradlew :app:assembleDebug
-python3 scripts/prepare_site.py
-# 产物在 site/ ，可用 python3 -m http.server 8765 --directory site
+# 本地预览（下载链到同目录 APK）：
+python3 scripts/prepare_site.py --local
+python3 -m http.server 8765 --directory site
+# 或：./scripts/publish_dist.sh && python3 -m http.server 8765 --directory dist
 ```
 
 APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。
@@ -21,4 +23,4 @@ APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。
 首次部署请在仓库 Settings → Pages → Source 选择 **GitHub Actions**。
 
 站点地址：`https://kylebing.github.io/bbq10-vocabulary/`  
-页面提供 APK 与扩展词库下载；内置词库用 App 内「切换词库」，扩展库用「从文件导入」。
+Pages **不提供在线 APK**（Q10 易报 Unable to install）；扩展词库仍可下载。装 App 请用本地 `http.server` 或 GitHub Release。内置词库用 App 内「切换词库」，扩展库用「从文件导入」。

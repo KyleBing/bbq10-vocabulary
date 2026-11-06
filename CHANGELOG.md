@@ -7,6 +7,9 @@
 ### 修复
 - 识词页空格需按两下才生效：第一下常被 `ScrollView`（翻页）或焦点落在「读」按钮上吃掉；改为在分发前拦截快捷键，并避免这两个控件抢焦点。
 
+### 站点
+- GitHub Pages **下线在线 APK**（Q10 安装报 Unable to install）；扩展词库仍可下载。本地用 `prepare_site.py --local` 或 `publish_dist.sh`。
+
 ## 1.0.0.28 — 2026-11-06
 
 ### 变更
