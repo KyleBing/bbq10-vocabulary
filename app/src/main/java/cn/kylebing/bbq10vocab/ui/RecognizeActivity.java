@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -137,6 +138,8 @@ public class RecognizeActivity extends Activity {
         markBar.setVisibility(View.VISIBLE);
         resultBar.setVisibility(View.GONE);
         refreshHeader();
+        // Keep focus off ScrollView / buttons so Space is not swallowed on first press.
+        sinkFocus(markBar);
     }
 
     private void hideMeaning() {
@@ -159,6 +162,20 @@ public class RecognizeActivity extends Activity {
         if (current != null) {
             stashBadge.setVisibility(current.isStashed() ? View.VISIBLE : View.GONE);
         }
+        sinkFocus(resultBar);
+    }
+
+    /** Focus a bar that does not consume Space (unlike ScrollView / some BB10 buttons). */
+    private void sinkFocus(View bar) {
+        if (bar == null || bar.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        if (bar instanceof ViewGroup) {
+            ((ViewGroup) bar).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        }
+        bar.setFocusable(true);
+        bar.setFocusableInTouchMode(true);
+        bar.requestFocus();
     }
 
     private void markKnown() {
@@ -199,8 +216,29 @@ public class RecognizeActivity extends Activity {
                 + " 暂存" + s.stashed + " 到期" + s.due);
     }
 
+    /**
+     * Intercept before focused children. ScrollView always eats Space for page-scroll
+     * (even when it cannot scroll); BB10 may also activate the focused button on Space.
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN
+                && event.getRepeatCount() == 0
+                && handleShortcut(event.getKeyCode(), event)) {
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (handleShortcut(keyCode, event)) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private boolean handleShortcut(int keyCode, KeyEvent event) {
         if (current != null && isSpeakKey(keyCode, event)) {
             speakCurrent();
             return true;
@@ -230,6 +268,6 @@ public class RecognizeActivity extends Activity {
                 return true;
             }
         }
-        return super.onKeyDown(keyCode, event);
+        return false;
     }
 }
