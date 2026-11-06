@@ -3,6 +3,7 @@ package cn.kylebing.bbq10vocab.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -12,6 +13,7 @@ public class SegmentProgressView extends View {
     private int[] colors = new int[0];
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint track = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF rect = new RectF();
 
     public SegmentProgressView(Context context) {
         super(context);
@@ -43,15 +45,20 @@ public class SegmentProgressView extends View {
     protected void onDraw(Canvas canvas) {
         int w = getWidth();
         int h = getHeight();
+        if (w <= 0 || h <= 0) {
+            return;
+        }
         float r = h / 2f;
-        canvas.drawRoundRect(0, 0, w, h, r, r, track);
+        // RectF overload is API 1; float overload requires API 21 (crashes on Q10).
+        rect.set(0, 0, w, h);
+        canvas.drawRoundRect(rect, r, r, track);
         int total = 0;
         for (int i = 0; i < counts.length; i++) {
             if (counts[i] > 0) {
                 total += counts[i];
             }
         }
-        if (total <= 0 || w <= 0) {
+        if (total <= 0) {
             return;
         }
         float x = 0;
@@ -60,7 +67,6 @@ public class SegmentProgressView extends View {
                 continue;
             }
             float seg = (counts[i] * (float) w) / total;
-            // last visible segment eats remainder to avoid gap
             boolean last = true;
             for (int j = i + 1; j < counts.length; j++) {
                 if (counts[j] > 0) {

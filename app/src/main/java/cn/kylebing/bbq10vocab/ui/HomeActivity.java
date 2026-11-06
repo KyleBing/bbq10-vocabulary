@@ -50,6 +50,11 @@ public class HomeActivity extends Activity {
         progressLabel = (TextView) findViewById(R.id.progressLabel);
         ((TextView) findViewById(R.id.versionText)).setText(appVersionLabel());
 
+        String bootErr = ((VocabApp) getApplication()).initError();
+        if (bootErr != null) {
+            Toast.makeText(this, "启动失败: " + bootErr, Toast.LENGTH_LONG).show();
+        }
+
         findViewById(R.id.btnRecognize).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,24 +187,28 @@ public class HomeActivity extends Activity {
     }
 
     private void refresh() {
-        VocabApp app = (VocabApp) getApplication();
-        title.setText(app.dao().bookTitle());
-        ProgressStats s = app.dao().stats();
-        known.setText("会 " + s.known);
-        unknown.setText("不会 " + s.unknown);
-        stash.setText("暂存 " + s.stashed);
-        due.setText("到期 " + s.due);
-        int[] buckets = app.dao().statusBuckets();
-        progressBar.setSegments(buckets, new int[]{
-                0xFF7DCE82, // known
-                0xFFEF9A9A, // unknown
-                0xFFFFCC80, // stash
-                0xFF3A3A3A  // unseen
-        });
-        int total = s.total <= 0 ? 1 : s.total;
-        int learned = buckets[0] + buckets[1] + buckets[2];
-        int pct = (learned * 100) / total;
-        progressLabel.setText("进度 " + learned + "/" + total + "（" + pct + "%）  绿会·红不会·橙暂存·灰未学");
+        try {
+            VocabApp app = (VocabApp) getApplication();
+            title.setText(app.dao().bookTitle());
+            ProgressStats s = app.dao().stats();
+            known.setText("会 " + s.known);
+            unknown.setText("不会 " + s.unknown);
+            stash.setText("暂存 " + s.stashed);
+            due.setText("到期 " + s.due);
+            int[] buckets = app.dao().statusBuckets();
+            progressBar.setSegments(buckets, new int[]{
+                    0xFF7DCE82, // known
+                    0xFFEF9A9A, // unknown
+                    0xFFFFCC80, // stash
+                    0xFF3A3A3A  // unseen
+            });
+            int total = s.total <= 0 ? 1 : s.total;
+            int learned = buckets[0] + buckets[1] + buckets[2];
+            int pct = (learned * 100) / total;
+            progressLabel.setText("进度 " + learned + "/" + total + "（" + pct + "%）  绿会·红不会·橙暂存·灰未学");
+        } catch (Throwable t) {
+            Toast.makeText(this, "加载失败: " + t.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private String appVersionLabel() {
@@ -207,7 +216,7 @@ public class HomeActivity extends Activity {
             PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
             return "v" + pi.versionName;
         } catch (Exception e) {
-            return "v1.0.0.17";
+            return "v1.0.0.18";
         }
     }
 
