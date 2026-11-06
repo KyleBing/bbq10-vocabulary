@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build download site into site/: versioned APK + wordbooks + index.html."""
+"""Build download site into site/: versioned APK + index.html."""
 from __future__ import annotations
 
 import re
@@ -30,24 +30,9 @@ def main() -> None:
     if site.exists():
         shutil.rmtree(site)
     site.mkdir(parents=True)
-    books = site / "wordbooks"
-    books.mkdir()
 
     shutil.copy2(apk_src, site / apk_name)
     shutil.copy2(apk_src, site / "cet4.apk")  # stable alias
-
-    asset_books = ROOT / "app" / "src" / "main" / "assets" / "books"
-    mapping = {
-        "cet4.db": asset_books / "cet4.db",
-        "cet6.db": asset_books / "cet6.db",
-        "gaozhong.db": asset_books / "gaozhong.db",
-        "chuzhong.db": asset_books / "chuzhong.db",
-        "kaoyan.db": asset_books / "kaoyan.db",
-    }
-    for name, src in mapping.items():
-        if not src.is_file():
-            raise SystemExit(f"wordbook missing: {src}")
-        shutil.copy2(src, books / name)
 
     build_info = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     sha = ""

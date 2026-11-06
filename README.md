@@ -19,4 +19,5 @@ APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。
 
 首次部署请在仓库 Settings → Pages → Source 选择 **GitHub Actions**。
 
-站点地址类似：`https://kylebing.github.io/bbq10-vocabulary/`
+站点地址：`https://kylebing.github.io/bbq10-vocabulary/`  
+页面只提供 APK 下载；词库已内置在 App 中，用「切换词库」即可。
