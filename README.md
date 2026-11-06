@@ -23,4 +23,4 @@ APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。
 首次部署请在仓库 Settings → Pages → Source 选择 **GitHub Actions**。
 
 站点地址：`https://kylebing.github.io/bbq10-vocabulary/`  
-Pages **不提供在线 APK**（Q10 易报 Unable to install）；扩展词库仍可下载。装 App 请用本地 `http.server` 或 GitHub Release。内置词库用 App 内「切换词库」，扩展库用「从文件导入」。
+页面 APK 下载链到 **GitHub Release**；扩展词库仍由 Pages 提供。本地预览用 `prepare_site.py --local` / `publish_dist.sh`。内置词库用 App 内「切换词库」，扩展库用「从文件导入」。

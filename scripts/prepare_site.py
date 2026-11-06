@@ -10,26 +10,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES_BASE = "https://kylebing.github.io/bbq10-vocabulary/"
+RELEASE_BASE = "https://github.com/KyleBing/bbq10-vocabulary/releases/download"
 
-DOWNLOAD_LOCAL = """      <table width="72%" border="0" cellpadding="0" cellspacing="0">
+DOWNLOAD_BLOCK = """      <table width="72%" border="0" cellpadding="0" cellspacing="0">
         <tr>
           <td align="center" bgcolor="#2E7D32">
             <a href="__APK__" style="display:block;width:100%;padding:12px 8px;text-decoration:none;color:#FFFFFF;">
               <font face="Helvetica, Arial, sans-serif" color="#FFFFFF" size="4"><b>下载 App v__VERSION__</b></font>
             </a>
-          </td>
-        </tr>
-      </table>"""
-
-DOWNLOAD_OFFLINE = """      <table width="84%" border="0" cellpadding="0" cellspacing="0">
-        <tr>
-          <td align="center" bgcolor="#333333" style="padding:12px 8px;">
-            <font face="Helvetica, Arial, sans-serif" color="#FFAB91" size="3"><b>在线 APK 已下线</b></font>
-            <br>
-            <font face="Helvetica, Arial, sans-serif" color="#AAAAAA" size="2">
-              Q10 上安装会报 Unable to install。<br>
-              请用电脑本地 http 服务安装，或从 GitHub Release 下载。
-            </font>
           </td>
         </tr>
       </table>"""
@@ -79,11 +67,11 @@ def main() -> None:
     if sha:
         build_info = f"{build_info} · {sha}"
 
-    apk_href = apk_name if local else ""
-    download_block = (
-        DOWNLOAD_LOCAL.replace("__APK__", apk_href).replace("__VERSION__", ver)
-        if local
-        else DOWNLOAD_OFFLINE
+    # Pages: link to GitHub Release asset (APK not hosted on Pages).
+    # Local: same-directory relative file from --local copy.
+    apk_href = apk_name if local else f"{RELEASE_BASE}/v{ver}/{apk_name}"
+    download_block = DOWNLOAD_BLOCK.replace("__APK__", apk_href).replace(
+        "__VERSION__", ver
     )
 
     html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
@@ -97,8 +85,8 @@ def main() -> None:
     (site / "index.html").write_text(html, encoding="utf-8")
     (site / "index.htm").write_text(html, encoding="utf-8")
     n = len(list(books_dst.glob("*.db"))) if books_dst.is_dir() else 0
-    mode = "local-apk" if local else "pages-no-apk"
-    print(f"site ready: {mode}  version={ver}  wordbooks={n}")
+    mode = "local-apk" if local else "release-apk"
+    print(f"site ready: {mode}  apk={apk_href}  version={ver}  wordbooks={n}")
 
 
 if __name__ == "__main__":
