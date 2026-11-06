@@ -24,11 +24,13 @@ import cn.kylebing.bbq10vocab.ProgressStats;
 import cn.kylebing.bbq10vocab.R;
 import cn.kylebing.bbq10vocab.VocabApp;
 import cn.kylebing.bbq10vocab.Word;
+import cn.kylebing.bbq10vocab.WordTts;
 import cn.kylebing.bbq10vocab.WordUtil;
 import cn.kylebing.bbq10vocab.db.WordDao;
 
 public class SpellActivity extends Activity {
     private WordDao dao;
+    private WordTts tts;
     private Word current;
     private long lastId = -1;
     private boolean waitingNext;
@@ -52,7 +54,9 @@ public class SpellActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spell);
-        dao = ((VocabApp) getApplication()).dao();
+        VocabApp app = (VocabApp) getApplication();
+        dao = app.dao();
+        tts = app.tts();
         header = (TextView) findViewById(R.id.header);
         prompt = (TextView) findViewById(R.id.prompt);
         blankSentence = (TextView) findViewById(R.id.blankSentence);
@@ -117,7 +121,11 @@ public class SpellActivity extends Activity {
                         || actionId == EditorInfo.IME_ACTION_SEND
                         || actionId == EditorInfo.IME_NULL
                         || enterKey) {
-                    onSubmit();
+                    if (waitingNext) {
+                        showNext();
+                    } else {
+                        onSubmit();
+                    }
                     return true;
                 }
                 return false;
@@ -127,6 +135,25 @@ public class SpellActivity extends Activity {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return false;
+                }
+                if (RecognizeActivity.isSpeakKey(keyCode, event)) {
+                    if (current != null) {
+                        tts.speak(SpellActivity.this, current.word);
+                    }
+                    return true;
+                }
+                if (waitingNext) {
+                    if (keyCode == KeyEvent.KEYCODE_ENTER
+                            || keyCode == KeyEvent.KEYCODE_SPACE
+                            || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+                        showNext();
+                        return true;
+                    }
+                    if (keyCode == KeyEvent.KEYCODE_S || keyCode == KeyEvent.KEYCODE_M) {
+                        onStashFromResult();
+                        return true;
+                    }
                     return false;
                 }
                 if (keyCode == KeyEvent.KEYCODE_ENTER
@@ -298,7 +325,12 @@ public class SpellActivity extends Activity {
     }
 
     private void onSubmit() {
-        if (current == null || waitingNext) {
+        if (current == null) {
+            return;
+        }
+        // Result already shown: Enter = next (same as Space / 下一词).
+        if (waitingNext) {
+            showNext();
             return;
         }
         // Enter / 查看结果: accept current text even if IME still composing.
@@ -332,6 +364,10 @@ public class SpellActivity extends Activity {
         input.setVisibility(View.GONE);
         btnSubmit.setVisibility(View.GONE);
         resultBar.setVisibility(View.VISIBLE);
+        resultBar.setFocusable(true);
+        resultBar.setFocusableInTouchMode(true);
+        input.clearFocus();
+        resultBar.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
@@ -359,6 +395,10 @@ public class SpellActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (current != null && RecognizeActivity.isSpeakKey(keyCode, event)) {
+            tts.speak(this, current.word);
+            return true;
+        }
         if (waitingNext) {
             if (keyCode == KeyEvent.KEYCODE_S || keyCode == KeyEvent.KEYCODE_M) {
                 onStashFromResult();

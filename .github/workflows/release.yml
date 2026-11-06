@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Recreate release if tag already exists"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: ver
+        run: |
+          VER=$(python3 -c "import re; from pathlib import Path; t=Path('app/build.gradle').read_text(); print(re.search(r'versionName\\s+\"([^\"]+)\"', t).group(1))")
+          CODE=$(python3 -c "import re; from pathlib import Path; t=Path('app/build.gradle').read_text(); print(re.search(r'versionCode\\s+(\\d+)', t).group(1))")
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VER" >> "$GITHUB_OUTPUT"
+          echo "apk=Vocabulary-$VER.apk" >> "$GITHUB_OUTPUT"
+          echo "Version $VER (code $CODE)"
+
+      - name: Check existing release
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already exists"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decide whether to publish
+        id: decide
+        run: |
+          EXISTS="${{ steps.check.outputs.exists }}"
+          FORCE="${{ github.event.inputs.force }}"
+          if [ "$EXISTS" = "true" ] && [ "$FORCE" != "true" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skip: release already exists (use workflow_dispatch force=true to recreate)"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up JDK 17
+        if: steps.decide.outputs.publish == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        if: steps.decide.outputs.publish == 'true'
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+
+      - name: Install Android platform / build-tools
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Grant gradlew
+        if: steps.decide.outputs.publish == 'true'
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        if: steps.decide.outputs.publish == 'true'
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Package release files
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk "out/${{ steps.ver.outputs.apk }}"
+          cp app/build/outputs/apk/debug/app-debug.apk out/cet4.apk
+          if ls web/wordbooks/*.db >/dev/null 2>&1; then
+            mkdir -p out/wordbooks
+            cp web/wordbooks/*.db out/wordbooks/
+          fi
+          python3 scripts/extract_changelog.py "${{ steps.ver.outputs.version }}" > out/notes.md
+          {
+            echo ""
+            echo "---"
+            echo "- APK: \`${{ steps.ver.outputs.apk }}\` / \`cet4.apk\`"
+            echo "- versionCode: ${{ steps.ver.outputs.code }}"
+            echo "- commit: ${GITHUB_SHA::7}"
+          } >> out/notes.md
+          cat out/notes.md
+
+      - name: Delete existing release (force)
+        if: steps.decide.outputs.publish == 'true' && steps.check.outputs.exists == 'true' && github.event.inputs.force == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "${{ steps.ver.outputs.tag }}" --yes --cleanup-tag || true
+
+      - name: Create GitHub Release
+        if: steps.decide.outputs.publish == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: Vocabulary ${{ steps.ver.outputs.version }}
+          body_path: out/notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          fail_on_unmatched_files: false
+          files: |
+            out/${{ steps.ver.outputs.apk }}
+            out/cet4.apk
+            out/wordbooks/*.db
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

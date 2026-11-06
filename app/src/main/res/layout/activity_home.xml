@@ -31,13 +31,22 @@
         android:orientation="horizontal">
 
         <TextView
+            android:id="@+id/statTotal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/word"
+            android:textSize="11sp" />
+
+        <TextView
             android:id="@+id/statKnown"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/accent"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/statUnknown"
@@ -46,7 +55,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="#FFEF9A9A"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/statStash"
@@ -55,7 +64,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/stash_text"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/statDue"
@@ -64,7 +73,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="#FF90CAF9"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 
     <cn.kylebing.bbq10vocab.ui.SegmentProgressView
@@ -156,34 +165,34 @@
             android:id="@+id/btnImport"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginRight="3dp"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
             android:background="@drawable/btn_home_bar"
             android:text="@string/mode_import"
             android:textColor="@color/text"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <Button
-            android:id="@+id/btnRestore"
+            android:id="@+id/btnProgress"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginLeft="3dp"
-            android:layout_marginRight="3dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
             android:background="@drawable/btn_home_bar"
-            android:text="@string/mode_restore"
+            android:text="@string/mode_progress"
             android:textColor="@color/text"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <Button
             android:id="@+id/btnHelp"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginLeft="3dp"
+            android:layout_marginLeft="2dp"
             android:layout_weight="1"
             android:background="@drawable/btn_home_bar"
             android:text="@string/mode_help"
             android:textColor="@color/text"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 </LinearLayout>

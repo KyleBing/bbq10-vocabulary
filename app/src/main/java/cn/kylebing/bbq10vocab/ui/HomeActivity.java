@@ -18,18 +18,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import cn.kylebing.bbq10vocab.ProgressStats;
 import cn.kylebing.bbq10vocab.R;
 import cn.kylebing.bbq10vocab.VocabApp;
 import cn.kylebing.bbq10vocab.db.BookImporter;
 import cn.kylebing.bbq10vocab.db.BuiltInBooks;
 import cn.kylebing.bbq10vocab.db.DbHelper;
+import cn.kylebing.bbq10vocab.db.ProgressIO;
 
 public class HomeActivity extends Activity {
     private static final int REQ_IMPORT = 41;
+    private static final int REQ_IMPORT_PROGRESS = 42;
 
     private TextView title;
+    private TextView total;
     private TextView known;
     private TextView unknown;
     private TextView stash;
@@ -41,6 +43,7 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         title = (TextView) findViewById(R.id.title);
+        total = (TextView) findViewById(R.id.statTotal);
         known = (TextView) findViewById(R.id.statKnown);
         unknown = (TextView) findViewById(R.id.statUnknown);
         stash = (TextView) findViewById(R.id.statStash);
@@ -89,23 +92,10 @@ public class HomeActivity extends Activity {
                 showBookPicker();
             }
         });
-        findViewById(R.id.btnRestore).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btnProgress).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AlertDialog.Builder(HomeActivity.this)
-                        .setMessage("切回内置四级词库？已学进度按单词全局保存，不会清空。")
-                        .setPositiveButton("恢复", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // keep existing cet4.db (and its unused local table); progress is global
-                                DbHelper.switchToBuiltIn(HomeActivity.this, BuiltInBooks.ALL[0], false);
-                                ((VocabApp) getApplication()).reloadDao();
-                                Toast.makeText(HomeActivity.this, R.string.restore_ok, Toast.LENGTH_SHORT).show();
-                                refresh();
-                            }
-                        })
-                        .setNegativeButton("取消", null)
-                        .show();
+                showProgressMenu();
             }
         });
     }
@@ -166,6 +156,123 @@ public class HomeActivity extends Activity {
         }).start();
     }
 
+    private void showProgressMenu() {
+        CharSequence[] items = new CharSequence[]{
+                getString(R.string.progress_export),
+                getString(R.string.progress_import)
+        };
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.mode_progress)
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            prepareExportProgress();
+                        } else if (which == 1) {
+                            openProgressFilePicker();
+                        }
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    /** Show local overview, then export on confirm. */
+    private void prepareExportProgress() {
+        Toast.makeText(this, "正在统计进度…", Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DbHelper.close();
+                    final ProgressIO.Summary local = ProgressIO.summarizeLocal(HomeActivity.this);
+                    final File dest = ProgressIO.defaultExportFile(HomeActivity.this);
+                    final String appVer = appVersionLabel().replaceFirst("^v", "");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ((VocabApp) getApplication()).reloadDao();
+                            } catch (Exception ignored) {
+                            }
+                            String msg = "将导出当前学习进度：\n\n"
+                                    + local.toOverviewLines()
+                                    + "\n\nApp " + appVer
+                                    + "\n保存到：\n" + dest.getAbsolutePath();
+                            new AlertDialog.Builder(HomeActivity.this)
+                                    .setTitle(R.string.progress_export)
+                                    .setMessage(msg)
+                                    .setPositiveButton("导出", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface d, int w) {
+                                            doExportProgress(dest);
+                                        }
+                                    })
+                                    .setNegativeButton("取消", null)
+                                    .show();
+                            refresh();
+                        }
+                    });
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ((VocabApp) getApplication()).reloadDao();
+                            } catch (Exception ignored) {
+                            }
+                            String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                            Toast.makeText(HomeActivity.this,
+                                    getString(R.string.progress_fail, msg),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void doExportProgress(final File dest) {
+        Toast.makeText(this, R.string.progress_exporting, Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DbHelper.close();
+                    final ProgressIO.Result result = ProgressIO.exportTo(HomeActivity.this, dest);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((VocabApp) getApplication()).reloadDao();
+                            String when = ProgressIO.formatTime(result.meta.exportedAt);
+                            Toast.makeText(HomeActivity.this,
+                                    getString(R.string.progress_export_ok, result.meta.count,
+                                            result.file.getAbsolutePath()
+                                                    + "\nApp " + result.meta.appVersion
+                                                    + " · " + when),
+                                    Toast.LENGTH_LONG).show();
+                            refresh();
+                        }
+                    });
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ((VocabApp) getApplication()).reloadDao();
+                            } catch (Exception ignored) {
+                            }
+                            String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                            Toast.makeText(HomeActivity.this,
+                                    getString(R.string.progress_fail, msg),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
     private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
@@ -175,6 +282,20 @@ public class HomeActivity extends Activity {
             startActivityForResult(Intent.createChooser(intent, getString(R.string.mode_import)), REQ_IMPORT);
         } catch (Exception e) {
             Toast.makeText(this, "无法打开文件选择器，请用内置词库", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void openProgressFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, getString(R.string.progress_import)),
+                    REQ_IMPORT_PROGRESS);
+        } catch (Exception e) {
+            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -189,6 +310,7 @@ public class HomeActivity extends Activity {
             VocabApp app = (VocabApp) getApplication();
             title.setText(app.dao().bookTitle());
             ProgressStats s = app.dao().stats();
+            total.setText("总计 " + s.total);
             known.setText("会 " + s.known);
             unknown.setText("不会 " + s.unknown);
             stash.setText("暂存 " + s.stashed);
@@ -217,7 +339,14 @@ public class HomeActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQ_IMPORT || resultCode != RESULT_OK || data == null || data.getData() == null) {
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+            return;
+        }
+        if (requestCode == REQ_IMPORT_PROGRESS) {
+            handleProgressImportResult(data.getData());
+            return;
+        }
+        if (requestCode != REQ_IMPORT) {
             return;
         }
         final Uri uri = data.getData();
@@ -277,6 +406,139 @@ public class HomeActivity extends Activity {
         }).start();
     }
 
+    private void handleProgressImportResult(Uri uri) {
+        try {
+            grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (Exception ignored) {
+        }
+        final String name = queryDisplayName(uri);
+        File cached;
+        try {
+            cached = copyUriToCacheNow(uri, name);
+        } catch (Exception e) {
+            String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+            Toast.makeText(this, getString(R.string.progress_fail, msg), Toast.LENGTH_LONG).show();
+            return;
+        }
+        final File cachedFile = cached;
+        Toast.makeText(this, "正在读取进度文件…", Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DbHelper.close();
+                    final ProgressIO.Meta fileMeta = ProgressIO.previewFile(cachedFile);
+                    final ProgressIO.Summary local = ProgressIO.summarizeLocal(HomeActivity.this);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ((VocabApp) getApplication()).reloadDao();
+                            } catch (Exception ignored) {
+                            }
+                            String fileVer = fileMeta.appVersion == null ? "?" : fileMeta.appVersion;
+                            String when = ProgressIO.formatTime(fileMeta.exportedAt);
+                            String msg = "文件概览\n"
+                                    + "App " + fileVer + "  ·  " + when + "\n"
+                                    + fileMeta.summary.toOverviewLines()
+                                    + "\n\n当前本地\n"
+                                    + local.toOverviewLines()
+                                    + "\n\n"
+                                    + getString(R.string.progress_import_confirm);
+                            new AlertDialog.Builder(HomeActivity.this)
+                                    .setTitle(R.string.progress_import)
+                                    .setMessage(msg)
+                                    .setPositiveButton("导入", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface d, int w) {
+                                            doImportProgress(cachedFile);
+                                        }
+                                    })
+                                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface d, int w) {
+                                            if (cachedFile.exists()) {
+                                                cachedFile.delete();
+                                            }
+                                        }
+                                    })
+                                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                        @Override
+                                        public void onCancel(DialogInterface dialog) {
+                                            if (cachedFile.exists()) {
+                                                cachedFile.delete();
+                                            }
+                                        }
+                                    })
+                                    .show();
+                            refresh();
+                        }
+                    });
+                } catch (final Exception e) {
+                    if (cachedFile.exists()) {
+                        cachedFile.delete();
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ((VocabApp) getApplication()).reloadDao();
+                            } catch (Exception ignored) {
+                            }
+                            String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                            Toast.makeText(HomeActivity.this,
+                                    getString(R.string.progress_fail, msg),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void doImportProgress(final File cachedFile) {
+        Toast.makeText(this, R.string.progress_importing, Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DbHelper.close();
+                    final ProgressIO.Meta meta = ProgressIO.importFromFile(
+                            HomeActivity.this, cachedFile);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((VocabApp) getApplication()).reloadDao();
+                            String ver = meta.appVersion == null ? "?" : meta.appVersion;
+                            Toast.makeText(HomeActivity.this,
+                                    getString(R.string.progress_import_ok, meta.count, ver),
+                                    Toast.LENGTH_LONG).show();
+                            refresh();
+                        }
+                    });
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ((VocabApp) getApplication()).reloadDao();
+                            } catch (Exception ignored) {
+                            }
+                            String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                            Toast.makeText(HomeActivity.this,
+                                    getString(R.string.progress_fail, msg),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } finally {
+                    if (cachedFile.exists()) {
+                        cachedFile.delete();
+                    }
+                }
+            }
+        }).start();
+    }
+
     private File copyUriToCacheNow(Uri uri, String displayName) throws Exception {
         InputStream in = BookImporter.openReadable(this, uri, displayName);
         if (in == null) {
@@ -296,7 +558,9 @@ public class HomeActivity extends Activity {
         }
         String suffix = ".bin";
         String lower = displayName == null ? "" : displayName.toLowerCase();
-        if (lower.endsWith(".db")) {
+        if (lower.endsWith(ProgressIO.EXT)) {
+            suffix = ProgressIO.EXT;
+        } else if (lower.endsWith(".db")) {
             suffix = ".db";
         } else if (lower.endsWith(".jsonl") || lower.endsWith(".json")) {
             suffix = ".jsonl";

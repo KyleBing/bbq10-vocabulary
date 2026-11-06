@@ -1,11 +1,13 @@
 package cn.kylebing.bbq10vocab.db;
 
 public final class BuiltInBooks {
+    /** Easy → hard. Default book is {@link #CET4}, not necessarily ALL[0]. */
+    public static final Item CET4 = new Item("四级", "cet4.db", "books/cet4.db");
     public static final Item[] ALL = new Item[]{
-            new Item("四级", "cet4.db", "books/cet4.db"),
-            new Item("六级", "cet6.db", "books/cet6.db"),
-            new Item("高中", "gaozhong.db", "books/gaozhong.db"),
             new Item("初中", "chuzhong.db", "books/chuzhong.db"),
+            new Item("高中", "gaozhong.db", "books/gaozhong.db"),
+            CET4,
+            new Item("六级", "cet6.db", "books/cet6.db"),
             new Item("考研", "kaoyan.db", "books/kaoyan.db"),
     };
 

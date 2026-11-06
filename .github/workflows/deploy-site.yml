@@ -60,6 +60,7 @@ jobs:
           path: |
             site/Vocabulary-*.apk
             site/cet4.apk
+            site/wordbooks/*.db
 
   deploy:
     needs: build

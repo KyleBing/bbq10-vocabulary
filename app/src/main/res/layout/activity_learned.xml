@@ -21,10 +21,10 @@
         android:layout_marginBottom="4dp" />
 
     <TextView
+        android:id="@+id/legend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="6dp"
-        android:text="绿=会  红=不会  橙=暂存  灰=未学 · 点词看释义"
         android:textColor="@color/text_dim"
         android:textSize="11sp" />
 
@@ -38,19 +38,14 @@
         android:textColor="@color/text_dim"
         android:visibility="gone" />
 
-    <ScrollView
-        android:id="@+id/wordScroll"
+    <ListView
+        android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
-
-        <TextView
-            android:id="@+id/wordCloud"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:lineSpacingExtra="4dp"
-            android:textColor="@color/word"
-            android:textSize="15sp" />
-    </ScrollView>
+        android:cacheColorHint="#FF111111"
+        android:divider="#FF222222"
+        android:dividerHeight="1dp"
+        android:listSelector="#332A4A7A"
+        android:scrollingCache="false" />
 </LinearLayout>

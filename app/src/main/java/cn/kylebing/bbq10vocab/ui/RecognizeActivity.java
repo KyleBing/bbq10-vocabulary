@@ -11,11 +11,13 @@ import cn.kylebing.bbq10vocab.ProgressStats;
 import cn.kylebing.bbq10vocab.R;
 import cn.kylebing.bbq10vocab.VocabApp;
 import cn.kylebing.bbq10vocab.Word;
+import cn.kylebing.bbq10vocab.WordTts;
 import cn.kylebing.bbq10vocab.WordUtil;
 import cn.kylebing.bbq10vocab.db.WordDao;
 
 public class RecognizeActivity extends Activity {
     private WordDao dao;
+    private WordTts tts;
     private Word current;
     private long lastId = -1;
     private boolean revealed;
@@ -30,12 +32,15 @@ public class RecognizeActivity extends Activity {
     private View markBar;
     private View resultBar;
     private Button btnNext;
+    private Button btnSpeak;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recognize);
-        dao = ((VocabApp) getApplication()).dao();
+        VocabApp app = (VocabApp) getApplication();
+        dao = app.dao();
+        tts = app.tts();
         header = (TextView) findViewById(R.id.header);
         wordText = (TextView) findViewById(R.id.wordText);
         phonetic = (TextView) findViewById(R.id.phonetic);
@@ -46,6 +51,7 @@ public class RecognizeActivity extends Activity {
         markBar = findViewById(R.id.markBar);
         resultBar = findViewById(R.id.resultBar);
         btnNext = (Button) findViewById(R.id.btnNext);
+        btnSpeak = (Button) findViewById(R.id.btnSpeak);
 
         findViewById(R.id.btnUnknown).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,7 +77,38 @@ public class RecognizeActivity extends Activity {
                 showNext();
             }
         });
+        btnSpeak.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                speakCurrent();
+            }
+        });
         showNext();
+    }
+
+    private void speakCurrent() {
+        if (current == null) {
+            return;
+        }
+        tts.speak(this, current.word);
+    }
+
+    /** Q10: `$` (hardware often as unicode / shift-4). Also keep P. */
+    static boolean isSpeakKey(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_P) {
+            return true;
+        }
+        // API 18 jar may lack KEYCODE_DOLLAR; match char / shift+4.
+        if (event != null) {
+            if (event.getUnicodeChar() == '$') {
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_4
+                    && (event.getMetaState() & KeyEvent.META_SHIFT_ON) != 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void showNext() {
@@ -81,6 +118,7 @@ public class RecognizeActivity extends Activity {
             wordText.setText(getString(R.string.empty_queue));
             phonetic.setText("");
             stashBadge.setVisibility(View.GONE);
+            btnSpeak.setVisibility(View.GONE);
             hideMeaning();
             markBar.setVisibility(View.GONE);
             resultBar.setVisibility(View.GONE);
@@ -91,6 +129,7 @@ public class RecognizeActivity extends Activity {
         wordText.setText(current.word);
         phonetic.setText(current.phonetic());
         stashBadge.setVisibility(current.isStashed() ? View.VISIBLE : View.GONE);
+        btnSpeak.setVisibility(View.VISIBLE);
         trans.setText(WordUtil.formatTrans(current.trans));
         exampleEn.setText(current.exampleEn == null ? "" : current.exampleEn);
         exampleCn.setText(current.exampleCn == null ? "" : current.exampleCn);
@@ -162,6 +201,10 @@ public class RecognizeActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (current != null && isSpeakKey(keyCode, event)) {
+            speakCurrent();
+            return true;
+        }
         if (current != null && !revealed) {
             if (keyCode == KeyEvent.KEYCODE_SPACE
                     || keyCode == KeyEvent.KEYCODE_Y

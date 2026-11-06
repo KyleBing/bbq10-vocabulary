@@ -101,7 +101,7 @@ public class DbHelper {
 
     public static synchronized void restoreDefault(Context context) {
         // Do not wipe cet4.db or progress — only switch active book back to 四级.
-        switchToBuiltIn(context, BuiltInBooks.ALL[0], false);
+        switchToBuiltIn(context, BuiltInBooks.CET4, false);
     }
 
     /**

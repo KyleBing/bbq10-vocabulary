@@ -17,13 +17,28 @@ SRC_DIR = os.path.join(
     "正序",
 )
 
-BOOKS = [
+# Packaged into App assets (keep small).
+BUILTIN_BOOKS = [
+    ("初中.jsonl", "chuzhong.db", "初中"),
+    ("高中.jsonl", "gaozhong.db", "高中"),
     ("四级.jsonl", "cet4.db", "四级"),
     ("六级.jsonl", "cet6.db", "六级"),
-    ("高中.jsonl", "gaozhong.db", "高中"),
-    ("初中.jsonl", "chuzhong.db", "初中"),
     ("考研.jsonl", "kaoyan.db", "考研"),
 ]
+
+# Site-only downloads → App「从文件导入」. Not shipped in APK.
+# Easy → hard (site download order).
+DOWNLOAD_BOOKS = [
+    ("专四.jsonl", "tem4.db", "专四"),
+    ("专八.jsonl", "tem8.db", "专八"),
+    ("雅思.jsonl", "ielts.db", "雅思"),
+    ("托福.jsonl", "toefl.db", "托福"),
+    ("SAT.jsonl", "sat.db", "SAT"),
+    ("GMAT.jsonl", "gmat.db", "GMAT"),
+    ("GRE.jsonl", "gre.db", "GRE"),
+]
+
+BOOKS = BUILTIN_BOOKS  # backward-compatible alias
 
 
 def compact_trans(translations):
@@ -117,10 +132,9 @@ def build_one(src, out, title):
     return count, size
 
 
-def main():
-    out_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "dist", "wordbooks")
+def build_list(books, out_dir):
     rows = []
-    for src_name, out_name, title in BOOKS:
+    for src_name, out_name, title in books:
         src = os.path.join(SRC_DIR, src_name)
         if not os.path.isfile(src):
             sys.stderr.write("skip missing %s\n" % src)
@@ -128,14 +142,26 @@ def main():
         out = os.path.join(out_dir, out_name)
         count, size = build_one(src, out, title)
         rows.append((out_name, title, count, size))
-
-    # keep assets cet4 in sync
-    assets = os.path.join(ROOT, "app", "src", "main", "assets", "cet4.db")
-    src4 = os.path.join(SRC_DIR, "四级.jsonl")
-    if os.path.isfile(src4):
-        build_one(src4, assets, "四级")
-
     return rows
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "all"
+
+    if mode in ("all", "builtin", "assets"):
+        assets_books = os.path.join(ROOT, "app", "src", "main", "assets", "books")
+        build_list(BUILTIN_BOOKS, assets_books)
+        # legacy root alias used by first-run DbHelper.ASSET_DB
+        src4 = os.path.join(SRC_DIR, "四级.jsonl")
+        assets = os.path.join(ROOT, "app", "src", "main", "assets", "cet4.db")
+        if os.path.isfile(src4):
+            build_one(src4, assets, "四级")
+
+    if mode in ("all", "download", "site"):
+        web_books = os.path.join(ROOT, "web", "wordbooks")
+        build_list(DOWNLOAD_BOOKS, web_books)
+        dist_books = os.path.join(ROOT, "dist", "wordbooks")
+        build_list(DOWNLOAD_BOOKS, dist_books)
 
 
 if __name__ == "__main__":

@@ -23,13 +23,27 @@
         android:textColor="@color/text_dim"
         android:textSize="16sp" />
 
+    <Button
+        android:id="@+id/btnSpeak"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/btn_next"
+        android:minWidth="72dp"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:text="@string/btn_speak"
+        android:textColor="@color/word"
+        android:textSize="14sp" />
+
     <TextView
         android:id="@+id/stashBadge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="2dp"
-        android:background="@color/stash"
+        android:background="@drawable/btn_stash"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingTop="2dp"
@@ -90,7 +104,7 @@
             android:layout_height="match_parent"
             android:layout_marginRight="3dp"
             android:layout_weight="1"
-            android:background="@color/unknown"
+            android:background="@drawable/btn_unknown"
             android:text="@string/btn_unknown"
             android:textColor="@color/word"
             android:textSize="16sp" />
@@ -102,7 +116,7 @@
             android:layout_marginLeft="3dp"
             android:layout_marginRight="3dp"
             android:layout_weight="1"
-            android:background="@color/stash"
+            android:background="@drawable/btn_stash"
             android:text="@string/btn_stash"
             android:textColor="@color/stash_text"
             android:textSize="16sp" />
@@ -113,7 +127,7 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="3dp"
             android:layout_weight="1"
-            android:background="@color/know"
+            android:background="@drawable/btn_know"
             android:text="@string/btn_know"
             android:textColor="@color/word"
             android:textSize="16sp" />

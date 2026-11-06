@@ -15,7 +15,10 @@ import cn.kylebing.bbq10vocab.db.DbHelper;
 public class WordStatusMapView extends View {
     private byte[] cells = new byte[0];
     private final Paint paint = new Paint();
+    private android.graphics.Bitmap cache;
     private int cols = 1;
+    private int cacheW;
+    private int cacheH;
 
     private static final int COL_UNSEEN = 0xFF2A2A2A;
     private static final int COL_UNKNOWN = 0xFFEF9A9A;
@@ -36,8 +39,18 @@ public class WordStatusMapView extends View {
 
     public void setCells(byte[] cells) {
         this.cells = cells == null ? new byte[0] : cells;
+        recycleCache();
         requestLayout();
         invalidate();
+    }
+
+    private void recycleCache() {
+        if (cache != null && !cache.isRecycled()) {
+            cache.recycle();
+        }
+        cache = null;
+        cacheW = 0;
+        cacheH = 0;
     }
 
     @Override
@@ -64,20 +77,38 @@ public class WordStatusMapView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         int w = getWidth();
-        if (w <= 0 || cells.length == 0) {
+        int h = getHeight();
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+        if (cells.length == 0) {
             canvas.drawColor(COL_UNSEEN);
             return;
         }
-        int cell = Math.max(1, w / cols);
-        int drawCols = Math.max(1, w / cell);
-        for (int i = 0; i < cells.length; i++) {
-            int col = i % drawCols;
-            int row = i / drawCols;
-            paint.setColor(colorOf(cells[i]));
-            int left = col * cell;
-            int top = row * cell;
-            canvas.drawRect(left, top, left + cell, top + cell, paint);
+        if (cache == null || cache.isRecycled() || cacheW != w || cacheH != h) {
+            recycleCache();
+            cache = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.RGB_565);
+            cacheW = w;
+            cacheH = h;
+            Canvas off = new Canvas(cache);
+            int cell = Math.max(1, w / cols);
+            int drawCols = Math.max(1, w / cell);
+            for (int i = 0; i < cells.length; i++) {
+                int col = i % drawCols;
+                int row = i / drawCols;
+                paint.setColor(colorOf(cells[i]));
+                int left = col * cell;
+                int top = row * cell;
+                off.drawRect(left, top, left + cell, top + cell, paint);
+            }
         }
+        canvas.drawBitmap(cache, 0, 0, null);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        recycleCache();
+        super.onDetachedFromWindow();
     }
 
     private static int colorOf(byte cell) {

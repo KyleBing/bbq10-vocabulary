@@ -17,7 +17,6 @@ local.properties
 /dist/*.apk
 /site/
 
-# Large optional dumps
-/dist/wordbooks/*.jsonl
-*.log
+# Local regenerable copies (canonical download DBs live in web/wordbooks/)
 /dist/wordbooks/
+*.log

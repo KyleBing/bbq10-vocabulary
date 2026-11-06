@@ -2,12 +2,14 @@ package cn.kylebing.bbq10vocab.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
 import cn.kylebing.bbq10vocab.R;
 import cn.kylebing.bbq10vocab.VocabApp;
 import cn.kylebing.bbq10vocab.Word;
+import cn.kylebing.bbq10vocab.WordTts;
 import cn.kylebing.bbq10vocab.WordUtil;
 import cn.kylebing.bbq10vocab.db.WordDao;
 
@@ -15,13 +17,16 @@ public class DetailActivity extends Activity {
     public static final String EXTRA_WORD_ID = "word_id";
 
     private WordDao dao;
+    private WordTts tts;
     private Word current;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        dao = ((VocabApp) getApplication()).dao();
+        VocabApp app = (VocabApp) getApplication();
+        dao = app.dao();
+        tts = app.tts();
         long id = getIntent().getLongExtra(EXTRA_WORD_ID, -1);
         current = dao.getById(id);
         if (current == null) {
@@ -41,6 +46,12 @@ public class DetailActivity extends Activity {
             exampleEn.setVisibility(View.GONE);
             exampleCn.setVisibility(View.GONE);
         }
+        findViewById(R.id.btnSpeak).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tts.speak(DetailActivity.this, current.word);
+            }
+        });
         findViewById(R.id.btnUnknown).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,5 +73,14 @@ public class DetailActivity extends Activity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (current != null && RecognizeActivity.isSpeakKey(keyCode, event)) {
+            tts.speak(this, current.word);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }
