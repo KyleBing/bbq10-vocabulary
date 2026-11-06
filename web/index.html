@@ -6,46 +6,81 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Vocabulary · v__VERSION__</title>
 <style>
-:root{
-  --bg:#0e0e0e;--panel:#1a1a1a;--line:#2c2c2c;
-  --text:#e8e8e8;--dim:#8a8a8a;--accent:#7DCE82;--btn:#2e7d32;
-}
-*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#111111;color:#eeeeee}
 body{
-  margin:0;min-height:100vh;font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-  background:radial-gradient(1200px 600px at 50% -10%,#1b2a1c 0%,var(--bg) 55%);
-  color:var(--text);display:flex;align-items:center;justify-content:center;padding:28px 16px;
+  font-family:Helvetica,Arial,sans-serif;
+  background-color:#111111;
+  padding:28px 16px;
+  text-align:center;
 }
 .card{
-  width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);
-  border-radius:16px;padding:28px 24px 22px;text-align:center;
+  width:100%;
+  max-width:420px;
+  margin:0 auto;
+  background:#1a1a1a;
+  background-color:#1a1a1a;
+  border:1px solid #2c2c2c;
+  border-radius:12px;
+  padding:28px 24px 22px;
 }
-.brand{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
-h1{margin:0;font-size:32px;font-weight:700;letter-spacing:-.02em}
+.brand{
+  font-size:13px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#7DCE82;
+  margin:0 0 10px;
+}
+h1{
+  margin:0;
+  font-size:32px;
+  font-weight:bold;
+  color:#ffffff;
+}
 .ver{
-  display:inline-block;margin:14px 0 0;padding:4px 10px;border-radius:999px;
-  background:#243126;color:var(--accent);font-size:13px;
+  display:inline-block;
+  margin:14px 0 0;
+  padding:4px 10px;
+  border-radius:12px;
+  background:#243126;
+  background-color:#243126;
+  color:#7DCE82;
+  font-size:13px;
 }
-.lead{margin:16px 0 0;color:var(--dim);font-size:15px;line-height:1.55}
+.lead{
+  margin:16px 0 0;
+  color:#9a9a9a;
+  font-size:15px;
+  line-height:1.55;
+}
 .btn{
-  display:block;margin:22px 0 0;padding:14px 18px;border-radius:10px;
-  background:var(--btn);color:#fff;text-decoration:none;font-size:17px;font-weight:600;
+  display:block;
+  margin:22px 0 0;
+  padding:14px 18px;
+  border-radius:10px;
+  background:#2e7d32;
+  background-color:#2e7d32;
+  color:#ffffff;
+  text-decoration:none;
+  font-size:17px;
+  font-weight:bold;
 }
-.btn:hover{filter:brightness(1.08)}
-.hint{margin:14px 0 0;color:var(--dim);font-size:13px;line-height:1.5;text-align:left}
-.hint b{color:var(--text);font-weight:600}
-.meta{margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);color:#666;font-size:12px}
+.meta{
+  margin:18px 0 0;
+  padding-top:14px;
+  border-top:1px solid #2c2c2c;
+  color:#666666;
+  font-size:12px;
+}
 </style>
 </head>
-<body>
-  <main class="card">
+<body bgcolor="#111111">
+  <div class="card">
     <p class="brand">BBQ10</p>
     <h1>Vocabulary</h1>
     <p class="ver">v__VERSION__</p>
     <p class="lead">面向 BlackBerry Q10 的英语词库。<br>四级 / 六级 / 高中 / 初中 / 考研已内置。</p>
     <a class="btn" href="__APK__">下载 App · v__VERSION__</a>
-    <p class="hint">安装后在 App 内用「切换词库」选择内置词库，无需再下 .db 文件。学习进度按单词全局保存。</p>
     <p class="meta">构建 __BUILD_INFO__</p>
-  </main>
+  </div>
 </body>
 </html>
