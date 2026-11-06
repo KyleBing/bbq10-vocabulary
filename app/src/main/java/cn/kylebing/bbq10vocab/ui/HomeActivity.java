@@ -216,7 +216,7 @@ public class HomeActivity extends Activity {
             PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
             return "v" + pi.versionName;
         } catch (Exception e) {
-            return "v1.0.0.18";
+            return "v1.0.0.19";
         }
     }
 
