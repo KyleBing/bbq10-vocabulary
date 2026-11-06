@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vocabulary</string>
+    <string name="book_name">四级</string>
+    <string name="mode_recognize">识词</string>
+    <string name="mode_spell">拼写</string>
+    <string name="mode_lookup">查词</string>
+    <string name="mode_learned">已学</string>
+    <string name="mode_import">切换词库</string>
+    <string name="mode_restore">恢复四级</string>
+    <string name="mode_help">帮助</string>
+    <string name="btn_know">会</string>
+    <string name="btn_unknown">不会</string>
+    <string name="btn_stash">暂存</string>
+    <string name="badge_stash">暂存</string>
+    <string name="btn_next">下一词</string>
+    <string name="hint_lookup">输入单词</string>
+    <string name="hint_spell">输入英文单词</string>
+    <string name="empty_queue">暂时没有待复习单词</string>
+    <string name="empty_learned">还没有标记为会的单词</string>
+    <string name="empty_search">没有匹配的单词</string>
+    <string name="spell_ok">正确</string>
+    <string name="spell_bad">不正确</string>
+    <string name="done">完成</string>
+    <string name="btn_view_result">查看结果</string>
+    <string name="live_spell">逐字提示</string>
+    <string name="ime_suggest">输入法提示</string>
+    <string name="importing">正在导入…</string>
+    <string name="import_ok">已导入 %1$d 词：%2$s</string>
+    <string name="import_fail">导入失败：%1$s</string>
+    <string name="restore_ok">已恢复默认四级词库</string>
+    <string name="help_title">帮助与快捷键</string>
+    <string name="help_body">识词\n· [k]空格[/k] / [k]→[/k] = 会\n· [k]B[/k] / [k]←[/k] = 不会\n· 出结果后：[f]暂存[/f]（[k]S[/k]）/ [f]下一词[/f]（[k]空格[/k] / [k]Enter[/k]）\n\n拼写\n· 输入字母；打开 [f]逐字提示[/f] 时对=绿、错=红\n· 拼对自动展示结果\n· [k]Enter[/k] 或 [f]查看结果[/f] = 提交\n· 出结果后：[f]暂存[/f]（[k]S[/k]）/ [f]下一词[/f]（[k]空格[/k] / [k]Enter[/k]）\n· 上方例句挖空为目标词\n\n学习机制（Leitner）\n· 不会：约 3 分钟后再入队，不立刻重复\n· [f]暂存[/f]：约 30 分钟后再加强，不挡新词\n· 出词顺序：到期不会 → 到期已会 → 未学新词 → 到期暂存\n· 会：清除暂存，间隔加长（约 1天→3天→7天→14天→30天）\n\n词库\n· 主页 [f]切换词库[/f] 可选内置四级/六级/高中/初中/考研\n· 也可从文件导入；若权限失败请用内置词库\n· 已学进度按单词全局保存，切换/恢复词库不会清空\n· [f]恢复四级[/f] 只切回四级词表</string>
+</resources>

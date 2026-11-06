@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'cn.kylebing.bbq10vocab'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "cn.kylebing.bbq10vocab"
+        minSdk 18
+        targetSdk 18
+        // BB10 系统里常把 versionCode 显示成 1.0.0.<code>，与 versionName 对齐避免两套号
+        versionCode 17
+        versionName "1.0.0.17"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+}

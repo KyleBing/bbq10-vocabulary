@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#FF111111</color>
+    <color name="bg_panel">#FF1C1C1C</color>
+    <color name="text">#FFEEEEEE</color>
+    <color name="text_dim">#FF9A9A9A</color>
+    <color name="word">#FFFFFFFF</color>
+    <color name="accent">#FF7DCE82</color>
+    <color name="know">#FF2E7D32</color>
+    <color name="unknown">#FF8E2A2A</color>
+    <color name="next">#FF2A4A7A</color>
+    <color name="stash">#FF6A4A1A</color>
+    <color name="stash_text">#FFFFCC80</color>
+    <color name="line">#FF333333</color>
+</resources>

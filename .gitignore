@@ -1,0 +1,23 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+**/build/
+/captures
+.cxx/
+
+# Built packages (CI publishes these)
+*.apk
+*.ap_
+*.dex
+*.class
+
+# Local download server leftovers
+/dist/*.apk
+/site/
+
+# Large optional dumps
+/dist/wordbooks/*.jsonl
+*.log
+/dist/wordbooks/

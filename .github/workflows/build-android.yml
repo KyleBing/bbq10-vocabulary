@@ -1,0 +1,51 @@
+name: Build Android APK
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant gradlew
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Read version
+        id: ver
+        run: |
+          VER=$(python3 -c "import re; from pathlib import Path; t=Path('app/build.gradle').read_text(); print(re.search(r'versionName\\s+\"([^\"]+)\"', t).group(1))")
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "apk=Vocabulary-$VER.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Rename APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk "out/${{ steps.ver.outputs.apk }}"
+          cp app/build/outputs/apk/debug/app-debug.apk out/cet4.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vocabulary-${{ steps.ver.outputs.version }}
+          path: |
+            out/${{ steps.ver.outputs.apk }}
+            out/cet4.apk
+          if-no-files-found: error
