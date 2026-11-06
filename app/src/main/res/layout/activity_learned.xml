@@ -23,7 +23,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="4dp"
+        android:paddingBottom="6dp"
         android:text="绿=会  红=不会  橙=暂存  灰=未学 · 点词看释义"
         android:textColor="@color/text_dim"
         android:textSize="11sp" />
@@ -38,12 +38,19 @@
         android:textColor="@color/text_dim"
         android:visibility="gone" />
 
-    <ListView
-        android:id="@+id/list"
+    <ScrollView
+        android:id="@+id/wordScroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:cacheColorHint="#00000000"
-        android:divider="@color/line"
-        android:dividerHeight="1dp" />
+        android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/wordCloud"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/word"
+            android:textSize="15sp" />
+    </ScrollView>
 </LinearLayout>

@@ -35,7 +35,6 @@ public class HomeActivity extends Activity {
     private TextView stash;
     private TextView due;
     private SegmentProgressView progressBar;
-    private TextView progressLabel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +46,6 @@ public class HomeActivity extends Activity {
         stash = (TextView) findViewById(R.id.statStash);
         due = (TextView) findViewById(R.id.statDue);
         progressBar = (SegmentProgressView) findViewById(R.id.progressBar);
-        progressLabel = (TextView) findViewById(R.id.progressLabel);
         ((TextView) findViewById(R.id.versionText)).setText(appVersionLabel());
 
         String bootErr = ((VocabApp) getApplication()).initError();
@@ -202,10 +200,6 @@ public class HomeActivity extends Activity {
                     0xFFFFCC80, // stash
                     0xFF3A3A3A  // unseen
             });
-            int total = s.total <= 0 ? 1 : s.total;
-            int learned = buckets[0] + buckets[1] + buckets[2];
-            int pct = (learned * 100) / total;
-            progressLabel.setText("进度 " + learned + "/" + total + "（" + pct + "%）  绿会·红不会·橙暂存·灰未学");
         } catch (Throwable t) {
             Toast.makeText(this, "加载失败: " + t.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -216,7 +210,7 @@ public class HomeActivity extends Activity {
             PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
             return "v" + pi.versionName;
         } catch (Exception e) {
-            return "v1.0.0.19";
+            return "v1.0.0.20";
         }
     }
 

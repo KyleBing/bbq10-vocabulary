@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build debug APK and publish to dist/ with a versioned filename.
+# Build debug APK and refresh local dist/ for python http.server.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -22,20 +22,15 @@ cp -f "$SRC" "dist/cet4.apk"
 
 python3 - <<PY
 from pathlib import Path
-import re
+from datetime import datetime, timezone
 ver = "${VERSION}"
 apk = "Vocabulary-${VERSION}.apk"
-html = Path("dist/index.html")
-text = html.read_text()
-text = re.sub(r"<title>.*?</title>", f"<title>Vocabulary APK v{ver}</title>", text)
-text = re.sub(r'(<p class="ver">).*?(</p>)', rf"\1版本 {ver}\2", text, count=1, flags=re.S)
-text = re.sub(
-    r'<a class="btn"[^>]*>.*?</a>',
-    f'<a class="btn" href="{apk}">下载 App · v{ver}</a>',
-    text,
-    count=1,
-    flags=re.S,
+html = Path("web/index.html").read_text(encoding="utf-8")
+html = (
+    html.replace("__VERSION__", ver)
+    .replace("__APK__", apk)
+    .replace("__BUILD_INFO__", "本地 dist · " + datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
 )
-html.write_text(text)
-print(f"Published dist/{apk} (+ dist/cet4.apk alias)  v{ver}")
+Path("dist/index.html").write_text(html, encoding="utf-8")
+print(f"Published dist/{apk} (+ dist/cet4.apk)  v{ver}")
 PY

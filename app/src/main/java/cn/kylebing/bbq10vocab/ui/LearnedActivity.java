@@ -2,10 +2,15 @@ package cn.kylebing.bbq10vocab.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -18,10 +23,10 @@ import cn.kylebing.bbq10vocab.db.WordDao;
 
 public class LearnedActivity extends Activity {
     private WordDao dao;
-    private WordListAdapter adapter;
     private TextView empty;
     private TextView header;
-    private ListView list;
+    private TextView wordCloud;
+    private ScrollView wordScroll;
     private WordStatusMapView statusMap;
 
     @Override
@@ -31,19 +36,11 @@ public class LearnedActivity extends Activity {
         dao = ((VocabApp) getApplication()).dao();
         empty = (TextView) findViewById(R.id.empty);
         header = (TextView) findViewById(R.id.header);
-        list = (ListView) findViewById(R.id.list);
+        wordCloud = (TextView) findViewById(R.id.wordCloud);
+        wordScroll = (ScrollView) findViewById(R.id.wordScroll);
         statusMap = (WordStatusMapView) findViewById(R.id.statusMap);
-        adapter = new WordListAdapter(this);
-        list.setAdapter(adapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Word w = adapter.getItem(position);
-                Intent intent = new Intent(LearnedActivity.this, DetailActivity.class);
-                intent.putExtra(DetailActivity.EXTRA_WORD_ID, w.id);
-                startActivity(intent);
-            }
-        });
+        wordCloud.setMovementMethod(LinkMovementMethod.getInstance());
+        wordCloud.setHighlightColor(0x332A4A7A);
     }
 
     @Override
@@ -52,12 +49,45 @@ public class LearnedActivity extends Activity {
         byte[] cells = dao.listAllStatusCells();
         statusMap.setCells(cells);
         List<Word> words = dao.listKnown(5000);
-        adapter.setItems(words);
         ProgressStats s = dao.stats();
         header.setText("词库 " + cells.length + " · 已会 " + s.known
                 + " · 不会 " + s.unknown + " · 暂存 " + s.stashed);
         boolean none = words.isEmpty();
         empty.setVisibility(none ? View.VISIBLE : View.GONE);
-        list.setVisibility(none ? View.GONE : View.VISIBLE);
+        wordScroll.setVisibility(none ? View.GONE : View.VISIBLE);
+        if (!none) {
+            wordCloud.setText(buildCloud(words));
+        } else {
+            wordCloud.setText("");
+        }
+    }
+
+    private CharSequence buildCloud(List<Word> words) {
+        SpannableStringBuilder sb = new SpannableStringBuilder();
+        for (int i = 0; i < words.size(); i++) {
+            final Word w = words.get(i);
+            if (i > 0) {
+                sb.append("   ");
+            }
+            int start = sb.length();
+            sb.append(w.word);
+            int end = sb.length();
+            final int color = w.isStashed() ? 0xFFFFCC80 : Color.WHITE;
+            sb.setSpan(new ClickableSpan() {
+                @Override
+                public void onClick(View widget) {
+                    Intent intent = new Intent(LearnedActivity.this, DetailActivity.class);
+                    intent.putExtra(DetailActivity.EXTRA_WORD_ID, w.id);
+                    startActivity(intent);
+                }
+
+                @Override
+                public void updateDrawState(TextPaint ds) {
+                    ds.setUnderlineText(false);
+                    ds.setColor(color);
+                }
+            }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return sb;
     }
 }
