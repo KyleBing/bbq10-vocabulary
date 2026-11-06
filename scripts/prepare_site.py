@@ -41,14 +41,21 @@ def main() -> None:
     if sha:
         build_info = f"{build_info} · {sha}"
 
+    # Absolute APK URL avoids broken relative paths on GitHub project pages / BB10.
+    base = "https://kylebing.github.io/bbq10-vocabulary/"
+    apk_href = base + apk_name
+
     html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
     html = (
         html.replace("__VERSION__", ver)
-        .replace("__APK__", apk_name)
+        .replace("__APK__", apk_href)
         .replace("__BUILD_INFO__", build_info)
     )
     (site / "index.html").write_text(html, encoding="utf-8")
-    print(f"site ready: {apk_name}  version={ver}")
+    # Also write a no-extension-friendly copy some old browsers prefer
+    (site / "index.htm").write_text(html, encoding="utf-8")
+    print(f"site ready: {apk_href}  version={ver}")
+
 
 
 if __name__ == "__main__":
