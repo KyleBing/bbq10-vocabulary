@@ -3,14 +3,16 @@ package cn.kylebing.bbq10vocab.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Spannable;
-import android.text.Spanned;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -49,6 +51,10 @@ public class SpellActivity extends Activity {
     private View resultBar;
     private CheckBox chkLive;
     private CheckBox chkIme;
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private String bookTitleCached;
+    private Runnable deferredSpeak;
+    private Runnable deferredHeader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,9 +104,15 @@ public class SpellActivity extends Activity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (waitingNext) {
+                    return;
+                }
                 keepInputVisible();
+                // Auto-finish first so the last keystroke does not also rebuild preview.
+                if (maybeAutoFinish()) {
+                    return;
+                }
                 updateTypedPreview();
-                maybeAutoFinish();
             }
 
             @Override
@@ -192,16 +204,31 @@ public class SpellActivity extends Activity {
         tts.speakWord(this, current, Prefs.speakExample(this));
     }
 
+    /** Defer TTS so keystroke / result UI paints before speak() work. */
     private void maybeAutoSpeak(boolean afterResult) {
         if (!Prefs.autoSpeak(this) || current == null) {
             return;
         }
         int when = Prefs.speakWhen(this);
-        if (afterResult && when == Prefs.SPEAK_AFTER_RESULT) {
-            speakCurrent();
-        } else if (!afterResult && when == Prefs.SPEAK_BEFORE_RESULT) {
-            speakCurrent();
+        final boolean should = (afterResult && when == Prefs.SPEAK_AFTER_RESULT)
+                || (!afterResult && when == Prefs.SPEAK_BEFORE_RESULT);
+        if (!should) {
+            return;
         }
+        if (deferredSpeak != null) {
+            uiHandler.removeCallbacks(deferredSpeak);
+        }
+        deferredSpeak = new Runnable() {
+            @Override
+            public void run() {
+                deferredSpeak = null;
+                if (isFinishing() || current == null) {
+                    return;
+                }
+                speakCurrent();
+            }
+        };
+        uiHandler.post(deferredSpeak);
     }
 
     private void applyImeMode(boolean refocus) {
@@ -248,24 +275,16 @@ public class SpellActivity extends Activity {
         }
     }
 
-    /** Keep centered; still pin caret to end so long words stay editable. */
+    /** Pin caret to end only when needed (avoid layout + posted selection every key). */
     private void keepInputVisible() {
         Editable text = input.getText();
         if (text == null) {
             return;
         }
-        final int len = text.length();
-        input.setGravity(Gravity.CENTER);
-        input.setSelection(len);
-        input.post(new Runnable() {
-            @Override
-            public void run() {
-                int l = input.length();
-                if (l > 0) {
-                    input.setSelection(l);
-                }
-            }
-        });
+        int len = text.length();
+        if (input.getSelectionEnd() != len) {
+            input.setSelection(len);
+        }
     }
 
     private void updateTypedPreview() {
@@ -276,32 +295,33 @@ public class SpellActivity extends Activity {
     }
 
     private boolean isComposing() {
+        // Soft-IME composing only; hard keyboard / password mode has no composition.
+        if (!imeOn) {
+            return false;
+        }
         CharSequence t = input.getText();
         if (!(t instanceof Spannable)) {
             return false;
         }
-        Spannable sp = (Spannable) t;
-        Object[] spans = sp.getSpans(0, sp.length(), Object.class);
-        for (int i = 0; i < spans.length; i++) {
-            if ((sp.getSpanFlags(spans[i]) & Spanned.SPAN_COMPOSING) != 0) {
-                return true;
-            }
-        }
-        return false;
+        return BaseInputConnection.getComposingSpanStart((Spannable) t) >= 0;
     }
 
-    private void maybeAutoFinish() {
+    /** @return true if the attempt was finished (UI already moved to result). */
+    private boolean maybeAutoFinish() {
         // While IME composing / candidate pending, don't auto-submit.
         if (current == null || waitingNext || isComposing()) {
-            return;
+            return false;
         }
         String typed = input.getText().toString().trim();
         if (typed.length() > 0 && typed.equalsIgnoreCase(current.word)) {
             finishAttempt(true);
+            return true;
         }
+        return false;
     }
 
     private void showNext() {
+        cancelDeferredUiWork();
         waitingNext = false;
         current = dao.nextReview(lastId);
         result.setVisibility(View.GONE);
@@ -322,7 +342,7 @@ public class SpellActivity extends Activity {
             typedPreview.setVisibility(View.GONE);
             btnSubmit.setVisibility(View.GONE);
             resultBar.setVisibility(View.GONE);
-            refreshHeader();
+            scheduleRefreshHeader();
             return;
         }
         lastId = current.id;
@@ -332,9 +352,9 @@ public class SpellActivity extends Activity {
         String blank = WordUtil.blankSentence(current.exampleEn, current.word);
         blankSentence.setText(blank);
         blankCn.setText(current.exampleCn == null ? "" : current.exampleCn);
-        refreshHeader();
         input.requestFocus();
         syncKeyboard();
+        scheduleRefreshHeader();
         maybeAutoSpeak(false);
     }
 
@@ -360,7 +380,8 @@ public class SpellActivity extends Activity {
         lastId = current.id;
         dao.mark(current.id, ok);
         showAnswer(ok);
-        refreshHeader();
+        // Stats are 5 COUNT queries — refresh after result UI paints.
+        scheduleRefreshHeader();
     }
 
     private void onStashFromResult() {
@@ -404,8 +425,46 @@ public class SpellActivity extends Activity {
     }
 
     private void refreshHeader() {
+        if (bookTitleCached == null) {
+            bookTitleCached = dao.bookTitle();
+        }
         ProgressStats s = dao.stats();
-        header.setText(dao.bookTitle() + "  " + s.reviewLine());
+        header.setText(bookTitleCached + "  " + s.reviewLine());
+    }
+
+    /** Heavy COUNT stats after UI settles — avoids hitch on last key / result. */
+    private void scheduleRefreshHeader() {
+        if (deferredHeader != null) {
+            uiHandler.removeCallbacks(deferredHeader);
+        }
+        deferredHeader = new Runnable() {
+            @Override
+            public void run() {
+                deferredHeader = null;
+                if (isFinishing()) {
+                    return;
+                }
+                refreshHeader();
+            }
+        };
+        uiHandler.post(deferredHeader);
+    }
+
+    private void cancelDeferredUiWork() {
+        if (deferredSpeak != null) {
+            uiHandler.removeCallbacks(deferredSpeak);
+            deferredSpeak = null;
+        }
+        if (deferredHeader != null) {
+            uiHandler.removeCallbacks(deferredHeader);
+            deferredHeader = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        cancelDeferredUiWork();
+        super.onDestroy();
     }
 
     @Override

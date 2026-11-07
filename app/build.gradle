@@ -11,8 +11,8 @@ android {
         minSdk 18
         targetSdk 18
         // BB10 系统里常把 versionCode 显示成 1.0.0.<code>，与 versionName 对齐避免两套号
-        versionCode 40
-        versionName "1.0.0.40"
+        versionCode 49
+        versionName "1.0.0.49"
     }
 
     buildTypes {

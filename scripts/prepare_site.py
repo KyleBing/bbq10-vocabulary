@@ -14,8 +14,8 @@ RELEASE_BASE = "https://github.com/KyleBing/bbq10-vocabulary/releases/download"
 
 DOWNLOAD_BLOCK = """      <table width="72%" border="0" cellpadding="0" cellspacing="0">
         <tr>
-          <td align="center" bgcolor="#2E7D32">
-            <a href="__APK__" style="display:block;width:100%;padding:12px 8px;text-decoration:none;color:#FFFFFF;">
+          <td align="center" style="padding:0;">
+            <a href="__APK__" style="display:block;background:#2E7D32;padding:12px 8px;text-decoration:none;color:#FFFFFF;-webkit-tap-highlight-color:rgba(125,206,130,0.4);">
               <font face="Helvetica, Arial, sans-serif" color="#FFFFFF" size="4"><b>下载 App v__VERSION__</b></font>
             </a>
           </td>

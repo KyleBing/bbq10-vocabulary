@@ -216,6 +216,55 @@ public class WordDao {
         markWord(word.word, known);
     }
 
+    /**
+     * 快速筛选：标为已会，但不进间隔复习队列
+     * （due_at=0；到期已会查询要求 due_at>0）。
+     */
+    public void markFilteredKnown(long wordId) {
+        Word word = getById(wordId);
+        if (word == null || word.word == null || word.word.length() == 0) {
+            return;
+        }
+        markFilteredKnownWord(word.word);
+    }
+
+    /**
+     * Random unseen headwords. Pass currently shown ids so RANDOM pages don't repeat.
+     */
+    public List<Word> listUnseenRandom(int limit, List<Long> excludeIds) {
+        List<Word> list = new ArrayList<Word>();
+        if (limit <= 0) {
+            return list;
+        }
+        String excl = "";
+        if (excludeIds != null && !excludeIds.isEmpty()) {
+            StringBuilder sb = new StringBuilder(" AND w.id NOT IN (");
+            for (int i = 0; i < excludeIds.size(); i++) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(excludeIds.get(i).longValue());
+            }
+            sb.append(')');
+            excl = sb.toString();
+        }
+        Cursor c = db.rawQuery(
+                COLS + "FROM words w" + JOIN_PROG
+                        + "WHERE (p.word IS NULL OR p.status=" + DbHelper.STATUS_UNSEEN + ")"
+                        + " AND w.id=(SELECT MIN(w2.id) FROM words w2 WHERE w2.word=w.word)"
+                        + excl
+                        + " ORDER BY RANDOM() LIMIT ?",
+                new String[]{String.valueOf(limit)});
+        try {
+            while (c.moveToNext()) {
+                list.add(fromCursor(c));
+            }
+        } finally {
+            c.close();
+        }
+        return list;
+    }
+
     /** 暂存 / 不太会：稍后加强，不插队到下一张。 */
     public void markStash(long wordId) {
         Word word = getById(wordId);
@@ -223,6 +272,71 @@ public class WordDao {
             return;
         }
         markStashWord(word.word);
+    }
+
+    public void markFilteredKnownWord(String headWord) {
+        if (headWord == null || headWord.length() == 0) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        Cursor c = db.rawQuery(
+                "SELECT status,seen,known_count,unknown_count,box FROM "
+                        + ProgressDb.ATTACH_ALIAS + ".progress WHERE word=?",
+                new String[]{headWord});
+        try {
+            int seen = 1;
+            int knownCount = 1;
+            int unknownCount = 0;
+            int box = DbHelper.BOX_INTERVAL_MS.length - 1;
+            boolean exists = c.moveToFirst();
+            if (exists) {
+                seen = c.getInt(1) + 1;
+                knownCount = c.getInt(2) + 1;
+                unknownCount = c.getInt(3);
+                box = DbHelper.BOX_INTERVAL_MS.length - 1;
+            }
+            // due_at=0 → 不进「到期已会」复习；仍计入「会」
+            upsertProgress(headWord, exists, DbHelper.STATUS_KNOWN, seen, knownCount,
+                    unknownCount, now, box, 0L, DbHelper.FLAG_NONE);
+        } finally {
+            c.close();
+        }
+    }
+
+    /** 筛选里再点一次：取消「会」，回到未学。 */
+    public void clearFilteredKnown(long wordId) {
+        Word word = getById(wordId);
+        if (word == null || word.word == null || word.word.length() == 0) {
+            return;
+        }
+        clearFilteredKnownWord(word.word);
+    }
+
+    public void clearFilteredKnownWord(String headWord) {
+        if (headWord == null || headWord.length() == 0) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        Cursor c = db.rawQuery(
+                "SELECT seen,known_count,unknown_count,box FROM "
+                        + ProgressDb.ATTACH_ALIAS + ".progress WHERE word=?",
+                new String[]{headWord});
+        try {
+            if (!c.moveToFirst()) {
+                return;
+            }
+            int seen = c.getInt(0);
+            int knownCount = c.getInt(1) - 1;
+            if (knownCount < 0) {
+                knownCount = 0;
+            }
+            int unknownCount = c.getInt(2);
+            int box = 0;
+            upsertProgress(headWord, true, DbHelper.STATUS_UNSEEN, seen, knownCount,
+                    unknownCount, now, box, 0L, DbHelper.FLAG_NONE);
+        } finally {
+            c.close();
+        }
     }
 
     public void markWord(String headWord, boolean known) {

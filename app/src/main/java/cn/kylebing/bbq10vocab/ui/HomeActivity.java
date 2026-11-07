@@ -68,10 +68,10 @@ public class HomeActivity extends Activity {
                 startActivity(new Intent(HomeActivity.this, SpellActivity.class));
             }
         });
-        findViewById(R.id.btnLookup).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btnFilter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(HomeActivity.this, LookupActivity.class));
+                startActivity(new Intent(HomeActivity.this, FilterActivity.class));
             }
         });
         findViewById(R.id.btnLearned).setOnClickListener(new View.OnClickListener() {

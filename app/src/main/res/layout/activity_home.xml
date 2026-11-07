@@ -171,7 +171,7 @@
             android:orientation="horizontal">
 
             <LinearLayout
-                android:id="@+id/btnLookup"
+                android:id="@+id/btnFilter"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginRight="4dp"
@@ -190,16 +190,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:contentDescription="@string/mode_lookup"
+                    android:contentDescription="@string/mode_filter"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/menu_search" />
+                    android:src="@drawable/menu_check" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:gravity="center"
-                    android:text="@string/mode_lookup"
+                    android:text="@string/mode_filter"
                     android:textColor="@color/text_dim"
                     android:textSize="12sp" />
             </LinearLayout>

@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.AbsoluteSizeSpan;
-import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.TypedValue;
 import android.widget.TextView;
 
 import cn.kylebing.bbq10vocab.R;
@@ -24,7 +24,13 @@ public class HelpActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help);
         TextView body = (TextView) findViewById(R.id.helpBody);
-        body.setText(formatHelp(getString(R.string.help_body)));
+        float chipSp = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP, 12f, getResources().getDisplayMetrics());
+        int padH = Math.round(TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 4f, getResources().getDisplayMetrics()));
+        int padV = Math.round(TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 1.5f, getResources().getDisplayMetrics()));
+        body.setText(formatHelp(getString(R.string.help_body), chipSp, padH, padV));
     }
 
     /**
@@ -33,7 +39,7 @@ public class HelpActivity extends Activity {
      * [k]空格[/k] key/shortcut chip
      * [f]查看结果[/f] feature/UI label
      */
-    static CharSequence formatHelp(String raw) {
+    static CharSequence formatHelp(String raw, float chipTextPx, int chipPadH, int chipPadV) {
         if (raw == null) {
             return "";
         }
@@ -56,20 +62,16 @@ public class HelpActivity extends Activity {
             }
             String inner = raw.substring(next.contentStart, close);
             int start = out.length();
-            if ("k".equals(next.name)) {
-                // Tight chip: thin spaces so background doesn't collide across lines.
-                out.append('\u2009').append(inner).append('\u2009');
-            } else {
-                out.append(inner);
-            }
+            out.append(inner);
             int end = out.length();
-            applySpan(out, next.name, start, end);
+            applySpan(out, next.name, start, end, chipTextPx, chipPadH, chipPadV);
             i = close + closeTag.length();
         }
         return out;
     }
 
-    private static void applySpan(SpannableStringBuilder out, String name, int start, int end) {
+    private static void applySpan(SpannableStringBuilder out, String name, int start, int end,
+                                  float chipTextPx, int chipPadH, int chipPadV) {
         if ("h".equals(name)) {
             out.setSpan(new AbsoluteSizeSpan(17, true), start, end,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -78,14 +80,8 @@ public class HelpActivity extends Activity {
             out.setSpan(new StyleSpan(Typeface.BOLD), start, end,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else if ("k".equals(name)) {
-            out.setSpan(new BackgroundColorSpan(COL_KEY_BG), start, end,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            out.setSpan(new ForegroundColorSpan(COL_KEY_FG), start, end,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            out.setSpan(new StyleSpan(Typeface.BOLD), start, end,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            out.setSpan(new AbsoluteSizeSpan(12, true), start, end,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            out.setSpan(new KeyChipSpan(COL_KEY_BG, COL_KEY_FG, chipPadH, chipPadV, chipTextPx),
+                    start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else if ("f".equals(name)) {
             out.setSpan(new ForegroundColorSpan(COL_FEAT), start, end,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 public final class WordUtil {
     private static final int GREEN = Color.parseColor("#7DCE82");
     private static final int RED = Color.parseColor("#EF9A9A");
-    private static final int DIM = Color.parseColor("#9A9A9A");
 
     private WordUtil() {
     }
@@ -71,24 +70,25 @@ public final class WordUtil {
         if (typed == null) {
             typed = "";
         }
+        // No live colors: plain text avoids per-char spans on every keystroke.
+        if (!enabled) {
+            return typed;
+        }
         if (answer == null) {
             answer = "";
         }
-        SpannableStringBuilder sb = new SpannableStringBuilder();
+        SpannableStringBuilder sb = new SpannableStringBuilder(typed);
         String a = answer.toLowerCase(Locale.US);
-        for (int i = 0; i < typed.length(); i++) {
+        int n = typed.length();
+        for (int i = 0; i < n; i++) {
             char ch = typed.charAt(i);
-            int start = sb.length();
-            sb.append(ch);
-            int color = DIM;
-            if (enabled) {
-                if (i < a.length() && Character.toLowerCase(ch) == a.charAt(i)) {
-                    color = GREEN;
-                } else {
-                    color = RED;
-                }
+            int color;
+            if (i < a.length() && Character.toLowerCase(ch) == a.charAt(i)) {
+                color = GREEN;
+            } else {
+                color = RED;
             }
-            sb.setSpan(new ForegroundColorSpan(color), start, start + 1,
+            sb.setSpan(new ForegroundColorSpan(color), i, i + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         return sb;

@@ -2,10 +2,12 @@
 <resources>
     <string name="app_name">Vocabulary</string>
     <string name="book_name">四级</string>
+    <string name="mode_filter">筛选</string>
     <string name="mode_recognize">识词</string>
     <string name="mode_spell">拼写</string>
-    <string name="mode_lookup">查词</string>
     <string name="mode_learned">已学</string>
+    <string name="filter_hint">点＝会（绿）· 再点＝取消 · 未点留给识词/拼写</string>
+    <string name="filter_empty">未学词已筛完</string>
     <string name="mode_import">切换词库</string>
     <string name="mode_progress">导入导出</string>
     <string name="mode_settings">设置</string>
@@ -32,7 +34,6 @@
     <string name="badge_stash">暂存</string>
     <string name="btn_next">下一词</string>
     <string name="btn_speak">读</string>
-    <string name="hint_lookup">输入单词</string>
     <string name="hint_spell">输入英文单词</string>
     <string name="empty_queue">暂时没有待复习单词</string>
     <string name="empty_learned">还没有标记为会的单词</string>
@@ -47,5 +48,5 @@
     <string name="import_ok">已导入 %1$d 词：%2$s</string>
     <string name="import_fail">导入失败：%1$s</string>
     <string name="help_title">帮助与快捷键</string>
-    <string name="help_body">[h]识词[/h]\n· [k]空格[/k] / [k]→[/k] = 会\n· [k]B[/k] / [k]←[/k] = 不会\n· [k]$[/k] / [k]P[/k] = 朗读（Pico TTS）\n· 出结果后：[f]暂存[/f]（[k]S[/k]，立刻下一词）/ [f]下一词[/f]（[k]空格[/k] / [k]Enter[/k]）\n\n[h]拼写[/h]\n· 输入字母；打开 [f]逐字提示[/f] 时对=绿、错=红\n· 拼对自动展示结果\n· [k]Enter[/k] 或 [f]查看结果[/f] = 提交\n· 出结果后：[f]暂存[/f]（[k]S[/k]，立刻下一词）/ [f]下一词[/f]（[k]空格[/k] / [k]Enter[/k]）\n· 上方例句挖空为目标词\n\n[h]设置[/h]\n· [f]自动发音[/f]：可选手动关闭，或出题时 / 出结果后朗读\n· [f]同时读英文例句[/f]：单词后接着读 example\n· 手动朗读始终可用 [k]$[/k] / [k]P[/k]\n\n[h]学习机制[/h]\n· 不会：约 3 分钟后再入队，不立刻重复\n· [f]暂存[/f]：约 30 分钟后再加强，不挡新词\n· 出词顺序：到期不会 → 到期已会 → 未学新词 → 到期暂存\n· 会：清除暂存，间隔加长（约 1天→3天→7天→14天→30天）\n\n[h]词库[/h]\n· 主页 [f]切换词库[/f] 可选内置初中/高中/四级/六级/考研（由易到难）\n· 也可从文件导入；若权限失败请用内置词库\n· 已学进度按单词全局保存，切换词库不会清空\n· [f]导入导出[/f]：导出/导入 .vprg（含 App 版本与时间，机器可读压缩格式）</string>
+    <string name="help_body">[h]筛选[/h]\n· 两列随机密铺未学英文词；[f]点词[/f] = 会（变绿），[f]再点[/f] = 取消\n· 标会的词计入已学，[f]不进间隔复习[/f]\n· 未点的词仍是未学，留给识词/拼写\n\n[h]识词[/h]\n· [k]空格[/k] / [k]→[/k] = 会\n· [k]B[/k] / [k]←[/k] = 不会\n· [k]$[/k] / [k]P[/k] = 朗读（Pico TTS）\n· 出结果后：[f]暂存[/f]（[k]S[/k]，立刻下一词）/ [f]下一词[/f]（[k]空格[/k] / [k]Enter[/k]）\n\n[h]拼写[/h]\n· 输入字母；打开 [f]逐字提示[/f] 时对=绿、错=红\n· 拼对自动展示结果\n· [k]Enter[/k] 或 [f]查看结果[/f] = 提交\n· 出结果后：[f]暂存[/f]（[k]S[/k]，立刻下一词）/ [f]下一词[/f]（[k]空格[/k] / [k]Enter[/k]）\n· 上方例句挖空为目标词\n\n[h]设置[/h]\n· [f]自动发音[/f]：可选手动关闭，或出题时 / 出结果后朗读\n· [f]同时读英文例句[/f]：单词后接着读 example\n· 手动朗读始终可用 [k]$[/k] / [k]P[/k]\n\n[h]学习机制[/h]\n· 不会：约 3 分钟后再入队，不立刻重复\n· [f]暂存[/f]：约 30 分钟后再加强，不挡新词\n· 出词顺序：到期不会 → 到期已会 → 未学新词 → 到期暂存\n· 会：清除暂存，间隔加长（约 1天→3天→7天→14天→30天）\n\n[h]词库[/h]\n· 主页 [f]切换词库[/f] 可选内置初中/高中/四级/六级/考研（由易到难）\n· 也可从文件导入；若权限失败请用内置词库\n· 已学进度按单词全局保存，切换词库不会清空\n· [f]导入导出[/f]：导出/导入 .vprg（含 App 版本与时间，机器可读压缩格式）</string>
 </resources>

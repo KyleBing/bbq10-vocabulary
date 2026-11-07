@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rowWord"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/row_filter_bg"
+    android:ellipsize="end"
+    android:gravity="center"
+    android:maxLines="1"
+    android:minHeight="48dp"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp"
+    android:textColor="@color/word"
+    android:textSize="20sp"
+    android:textStyle="bold" />
