@@ -89,7 +89,8 @@ def main():
         """
     )
 
-    count = 0
+    # Source JSONL often repeats the same headword; keep the richest gloss/example.
+    best = {}
     with open(src, "r") as f:
         for line in f:
             line = line.strip()
@@ -100,26 +101,30 @@ def main():
             if not word:
                 continue
             example_en, example_cn = first_sentence(row.get("sentences"))
-            cur.execute(
-                "INSERT INTO words(word, us, uk, trans, example_en, example_cn) "
-                "VALUES(?,?,?,?,?,?)",
-                (
-                    word,
-                    (row.get("us") or "").strip(),
-                    (row.get("uk") or "").strip(),
-                    compact_trans(row.get("translations")),
-                    example_en,
-                    example_cn,
-                ),
+            entry = (
+                word,
+                (row.get("us") or "").strip(),
+                (row.get("uk") or "").strip(),
+                compact_trans(row.get("translations")),
+                example_en,
+                example_cn,
             )
-            count += 1
+            score = len(entry[3]) + len(entry[4]) + len(entry[5])
+            prev = best.get(word)
+            if prev is None or score > prev[0]:
+                best[word] = (score, entry)
+    for word in sorted(best.keys()):
+        cur.execute(
+            "INSERT INTO words(word, us, uk, trans, example_en, example_cn) "
+            "VALUES(?,?,?,?,?,?)",
+            best[word][1],
+        )
+    count = len(best)
 
     conn.commit()
     conn.close()
     size = os.path.getsize(out)
-    print("wrote %d words -> %s (%.2f MB)" % (count, out, size / 1024.0 / 1024.0))
-    if count != 7508:
-        sys.stderr.write("warning: expected 7508 words, got %d\n" % count)
+    print("wrote %d unique words -> %s (%.2f MB)" % (count, out, size / 1024.0 / 1024.0))
 
 
 if __name__ == "__main__":

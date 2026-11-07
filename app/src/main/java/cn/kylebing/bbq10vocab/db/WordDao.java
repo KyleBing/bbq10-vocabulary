@@ -36,17 +36,21 @@ public class WordDao {
     }
 
     public ProgressStats stats() {
-        int total = scalar("SELECT COUNT(*) FROM words");
-        int known = scalar("SELECT COUNT(*) FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
-                + ".progress p ON p.word=w.word WHERE p.status=" + DbHelper.STATUS_KNOWN);
-        int unknown = scalar("SELECT COUNT(*) FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
-                + ".progress p ON p.word=w.word WHERE p.status=" + DbHelper.STATUS_UNKNOWN);
+        // DISTINCT: progress is by word text; duplicate word rows must not inflate counts.
+        int total = scalar("SELECT COUNT(DISTINCT word) FROM words");
+        int known = scalar("SELECT COUNT(DISTINCT w.word) FROM words w JOIN "
+                + ProgressDb.ATTACH_ALIAS + ".progress p ON p.word=w.word WHERE p.status="
+                + DbHelper.STATUS_KNOWN);
+        int unknown = scalar("SELECT COUNT(DISTINCT w.word) FROM words w JOIN "
+                + ProgressDb.ATTACH_ALIAS + ".progress p ON p.word=w.word WHERE p.status="
+                + DbHelper.STATUS_UNKNOWN);
         long now = System.currentTimeMillis();
-        int due = scalar("SELECT COUNT(*) FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
-                + ".progress p ON p.word=w.word WHERE p.due_at>0 AND p.due_at<=" + now
-                + " AND p.status!=" + DbHelper.STATUS_UNSEEN);
-        int stashed = scalar("SELECT COUNT(*) FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
-                + ".progress p ON p.word=w.word WHERE p.flag=" + DbHelper.FLAG_STASH);
+        int due = scalar("SELECT COUNT(DISTINCT w.word) FROM words w JOIN "
+                + ProgressDb.ATTACH_ALIAS + ".progress p ON p.word=w.word WHERE p.due_at>0 AND p.due_at<="
+                + now + " AND p.status!=" + DbHelper.STATUS_UNSEEN);
+        int stashed = scalar("SELECT COUNT(DISTINCT w.word) FROM words w JOIN "
+                + ProgressDb.ATTACH_ALIAS + ".progress p ON p.word=w.word WHERE p.flag="
+                + DbHelper.FLAG_STASH);
         ProgressStats s = new ProgressStats(total, known, unknown);
         s.due = due;
         s.stashed = stashed;
@@ -133,7 +137,9 @@ public class WordDao {
         }
         Cursor c = db.rawQuery(
                 COLS + "FROM words w" + JOIN_PROG
-                        + "WHERE w.word LIKE ? ORDER BY w.word LIMIT ?",
+                        + "WHERE w.word LIKE ?"
+                        + " AND w.id=(SELECT MIN(w2.id) FROM words w2 WHERE w2.word=w.word)"
+                        + " ORDER BY w.word LIMIT ?",
                 new String[]{prefix + "%", String.valueOf(limit)});
         try {
             while (c.moveToNext()) {
@@ -147,9 +153,11 @@ public class WordDao {
 
     public List<Word> listKnown(int limit) {
         List<Word> list = new ArrayList<Word>();
+        // One row per headword (duplicate book entries share the same progress).
         Cursor c = db.rawQuery(
                 COLS + "FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
                         + ".progress p ON p.word=w.word WHERE p.status=" + DbHelper.STATUS_KNOWN
+                        + " AND w.id=(SELECT MIN(w2.id) FROM words w2 WHERE w2.word=w.word)"
                         + " ORDER BY w.word ASC LIMIT ?",
                 new String[]{String.valueOf(limit)});
         try {
@@ -162,10 +170,11 @@ public class WordDao {
         return list;
     }
 
-    /** Status mosaic for every word in the active book (order by id). */
+    /** Status mosaic for every unique word in the active book (order by id). */
     public byte[] listAllStatusCells() {
         Cursor c = db.rawQuery(
                 "SELECT IFNULL(p.status,0), IFNULL(p.flag,0) FROM words w" + JOIN_PROG
+                        + "WHERE w.id=(SELECT MIN(w2.id) FROM words w2 WHERE w2.word=w.word) "
                         + "ORDER BY w.id",
                 null);
         try {
@@ -185,12 +194,12 @@ public class WordDao {
         ProgressStats s = stats();
         int stash = s.stashed;
         // known/unknown counts include stashed rows; subtract stash from them for bar segments.
-        int knownPlain = scalar("SELECT COUNT(*) FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
-                + ".progress p ON p.word=w.word WHERE p.status=" + DbHelper.STATUS_KNOWN
-                + " AND IFNULL(p.flag,0)!=" + DbHelper.FLAG_STASH);
-        int unknownPlain = scalar("SELECT COUNT(*) FROM words w JOIN " + ProgressDb.ATTACH_ALIAS
-                + ".progress p ON p.word=w.word WHERE p.status=" + DbHelper.STATUS_UNKNOWN
-                + " AND IFNULL(p.flag,0)!=" + DbHelper.FLAG_STASH);
+        int knownPlain = scalar("SELECT COUNT(DISTINCT w.word) FROM words w JOIN "
+                + ProgressDb.ATTACH_ALIAS + ".progress p ON p.word=w.word WHERE p.status="
+                + DbHelper.STATUS_KNOWN + " AND IFNULL(p.flag,0)!=" + DbHelper.FLAG_STASH);
+        int unknownPlain = scalar("SELECT COUNT(DISTINCT w.word) FROM words w JOIN "
+                + ProgressDb.ATTACH_ALIAS + ".progress p ON p.word=w.word WHERE p.status="
+                + DbHelper.STATUS_UNKNOWN + " AND IFNULL(p.flag,0)!=" + DbHelper.FLAG_STASH);
         int used = knownPlain + unknownPlain + stash;
         int unseen = s.total - used;
         if (unseen < 0) {

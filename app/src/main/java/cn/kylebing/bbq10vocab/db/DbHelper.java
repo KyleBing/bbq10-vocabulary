@@ -193,6 +193,48 @@ public class DbHelper {
                         + "value TEXT NOT NULL DEFAULT '')");
         addColumnIfMissing(db, "progress", "box", "INTEGER NOT NULL DEFAULT 0");
         addColumnIfMissing(db, "progress", "due_at", "INTEGER NOT NULL DEFAULT 0");
+        dedupeWords(db);
+    }
+
+    /**
+     * Source JSONL often repeats the same headword with different glosses.
+     * Progress is keyed by word text, so JOIN stats/lists inflate 2–3× without this.
+     * Keep the richest row (longest trans+examples); drop the rest. Idempotent.
+     */
+    static void dedupeWords(SQLiteDatabase db) {
+        Cursor c = db.rawQuery(
+                "SELECT COUNT(*), COUNT(DISTINCT word) FROM words", null);
+        int total;
+        int uniq;
+        try {
+            if (!c.moveToFirst()) {
+                return;
+            }
+            total = c.getInt(0);
+            uniq = c.getInt(1);
+        } finally {
+            c.close();
+        }
+        if (total <= uniq) {
+            return;
+        }
+        db.beginTransaction();
+        try {
+            // Keep one id per word: richest content, then smallest id.
+            db.execSQL(
+                    "DELETE FROM words WHERE id NOT IN ("
+                            + "SELECT MIN(id) FROM words AS w "
+                            + "WHERE LENGTH(trans)+LENGTH(example_en)+LENGTH(example_cn)=("
+                            + "SELECT MAX(LENGTH(t.trans)+LENGTH(t.example_en)+LENGTH(t.example_cn)) "
+                            + "FROM words AS t WHERE t.word=w.word) "
+                            + "GROUP BY word)");
+            // Book-local progress (if any left) may reference deleted ids — drop orphans.
+            db.execSQL(
+                    "DELETE FROM progress WHERE word_id NOT IN (SELECT id FROM words)");
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
     }
 
     private static void addColumnIfMissing(SQLiteDatabase db, String table, String col, String def) {
