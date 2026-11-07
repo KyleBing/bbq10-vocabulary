@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import cn.kylebing.bbq10vocab.Prefs;
 import cn.kylebing.bbq10vocab.ProgressStats;
 import cn.kylebing.bbq10vocab.R;
 import cn.kylebing.bbq10vocab.VocabApp;
@@ -33,7 +34,6 @@ public class RecognizeActivity extends Activity {
     private View markBar;
     private View resultBar;
     private Button btnNext;
-    private Button btnSpeak;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +52,6 @@ public class RecognizeActivity extends Activity {
         markBar = findViewById(R.id.markBar);
         resultBar = findViewById(R.id.resultBar);
         btnNext = (Button) findViewById(R.id.btnNext);
-        btnSpeak = (Button) findViewById(R.id.btnSpeak);
 
         findViewById(R.id.btnUnknown).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,12 +77,6 @@ public class RecognizeActivity extends Activity {
                 showNext();
             }
         });
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                speakCurrent();
-            }
-        });
         showNext();
     }
 
@@ -91,7 +84,21 @@ public class RecognizeActivity extends Activity {
         if (current == null) {
             return;
         }
-        tts.speak(this, current.word);
+        // 例句未展示前不读例句（仅出结果后 / 手动朗读且已揭晓时）
+        boolean example = Prefs.speakExample(this) && revealed;
+        tts.speakWord(this, current, example);
+    }
+
+    private void maybeAutoSpeak(boolean afterResult) {
+        if (!Prefs.autoSpeak(this) || current == null) {
+            return;
+        }
+        int when = Prefs.speakWhen(this);
+        if (afterResult && when == Prefs.SPEAK_AFTER_RESULT) {
+            speakCurrent();
+        } else if (!afterResult && when == Prefs.SPEAK_BEFORE_RESULT) {
+            speakCurrent();
+        }
     }
 
     /** Q10: `$` (hardware often as unicode / shift-4). Also keep P. */
@@ -119,7 +126,6 @@ public class RecognizeActivity extends Activity {
             wordText.setText(getString(R.string.empty_queue));
             phonetic.setText("");
             stashBadge.setVisibility(View.GONE);
-            btnSpeak.setVisibility(View.GONE);
             hideMeaning();
             markBar.setVisibility(View.GONE);
             resultBar.setVisibility(View.GONE);
@@ -130,7 +136,6 @@ public class RecognizeActivity extends Activity {
         wordText.setText(current.word);
         phonetic.setText(current.phonetic());
         stashBadge.setVisibility(current.isStashed() ? View.VISIBLE : View.GONE);
-        btnSpeak.setVisibility(View.VISIBLE);
         trans.setText(WordUtil.formatTrans(current.trans));
         exampleEn.setText(current.exampleEn == null ? "" : current.exampleEn);
         exampleCn.setText(current.exampleCn == null ? "" : current.exampleCn);
@@ -140,6 +145,7 @@ public class RecognizeActivity extends Activity {
         refreshHeader();
         // Keep focus off ScrollView / buttons so Space is not swallowed on first press.
         sinkFocus(markBar);
+        maybeAutoSpeak(false);
     }
 
     private void hideMeaning() {
@@ -163,6 +169,7 @@ public class RecognizeActivity extends Activity {
             stashBadge.setVisibility(current.isStashed() ? View.VISIBLE : View.GONE);
         }
         sinkFocus(resultBar);
+        maybeAutoSpeak(true);
     }
 
     /** Focus a bar that does not consume Space (unlike ScrollView / some BB10 buttons). */
@@ -199,21 +206,19 @@ public class RecognizeActivity extends Activity {
         refreshHeader();
     }
 
-    /** 出结果后再暂存，不立刻跳下一词。 */
+    /** 出结果后暂存，立刻下一词。 */
     private void onStashFromResult() {
         if (current == null || !revealed) {
             return;
         }
         dao.markStash(current.id);
         current.flag = 1;
-        stashBadge.setVisibility(View.VISIBLE);
-        refreshHeader();
+        showNext();
     }
 
     private void refreshHeader() {
         ProgressStats s = dao.stats();
-        header.setText(dao.bookTitle() + "  会" + s.known + " 不会" + s.unknown
-                + " 暂存" + s.stashed + " 到期" + s.due);
+        header.setText(dao.bookTitle() + "  " + s.reviewLine());
     }
 
     /**

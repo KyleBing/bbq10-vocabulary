@@ -58,13 +58,42 @@ public final class WordTts implements TextToSpeech.OnInitListener {
         }
     }
 
-    /** Speak English word; only toast on real failure (no engine banner). */
-    public void speak(Context ui, String word) {
-        if (word == null) {
+    /** Speak English text (flush queue); only toast on real failure. */
+    public void speak(Context ui, String text) {
+        speak(ui, text, true);
+    }
+
+    /** Append to TTS queue (for example sentence after the word). */
+    public void speakAdd(Context ui, String text) {
+        speak(ui, text, false);
+    }
+
+    /** Word, then optional English example when {@link Prefs#speakExample} is on. */
+    public void speakWord(Context ui, Word word, boolean withExample) {
+        if (word == null || word.word == null) {
             return;
         }
-        word = word.trim();
-        if (word.length() == 0) {
+        speak(ui, word.word, true);
+        if (!withExample) {
+            return;
+        }
+        String ex = word.exampleEn;
+        if (ex == null) {
+            return;
+        }
+        ex = ex.trim();
+        if (ex.length() == 0) {
+            return;
+        }
+        speak(ui, ex, false);
+    }
+
+    private void speak(Context ui, String text, boolean flush) {
+        if (text == null) {
+            return;
+        }
+        text = text.trim();
+        if (text.length() == 0) {
             return;
         }
         if (initFailed) {
@@ -72,10 +101,12 @@ public final class WordTts implements TextToSpeech.OnInitListener {
             return;
         }
         if (!ready) {
-            pending = word;
+            if (flush) {
+                pending = text;
+            }
             return;
         }
-        if (!doSpeak(word)) {
+        if (!doSpeak(text, flush)) {
             toast(ui, "朗读失败");
         }
     }
@@ -97,10 +128,15 @@ public final class WordTts implements TextToSpeech.OnInitListener {
         }
     }
 
-    private boolean doSpeak(String word) {
+    private boolean doSpeak(String text) {
+        return doSpeak(text, true);
+    }
+
+    private boolean doSpeak(String text, boolean flush) {
         try {
             // API 18 signature
-            int r = tts.speak(word, TextToSpeech.QUEUE_FLUSH, null);
+            int mode = flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
+            int r = tts.speak(text, mode, null);
             return r == TextToSpeech.SUCCESS;
         } catch (Throwable t) {
             status = "speak 异常：" + msg(t) + engineSummary();

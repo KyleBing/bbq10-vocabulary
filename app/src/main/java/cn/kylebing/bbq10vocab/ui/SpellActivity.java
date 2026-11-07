@@ -138,9 +138,7 @@ public class SpellActivity extends Activity {
                     return false;
                 }
                 if (RecognizeActivity.isSpeakKey(keyCode, event)) {
-                    if (current != null) {
-                        tts.speak(SpellActivity.this, current.word);
-                    }
+                    speakCurrent();
                     return true;
                 }
                 if (waitingNext) {
@@ -187,6 +185,25 @@ public class SpellActivity extends Activity {
         showNext();
     }
 
+    private void speakCurrent() {
+        if (current == null) {
+            return;
+        }
+        tts.speakWord(this, current, Prefs.speakExample(this));
+    }
+
+    private void maybeAutoSpeak(boolean afterResult) {
+        if (!Prefs.autoSpeak(this) || current == null) {
+            return;
+        }
+        int when = Prefs.speakWhen(this);
+        if (afterResult && when == Prefs.SPEAK_AFTER_RESULT) {
+            speakCurrent();
+        } else if (!afterResult && when == Prefs.SPEAK_BEFORE_RESULT) {
+            speakCurrent();
+        }
+    }
+
     private void applyImeMode(boolean refocus) {
         String keep = input.getText() == null ? "" : input.getText().toString();
         int sel = input.getSelectionEnd();
@@ -231,18 +248,14 @@ public class SpellActivity extends Activity {
         }
     }
 
-    /** Centered EditText often clips the caret at the end — scroll it into view. */
+    /** Keep centered; still pin caret to end so long words stay editable. */
     private void keepInputVisible() {
         Editable text = input.getText();
         if (text == null) {
             return;
         }
-        int len = text.length();
-        if (len <= 8) {
-            input.setGravity(Gravity.CENTER);
-        } else {
-            input.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-        }
+        final int len = text.length();
+        input.setGravity(Gravity.CENTER);
         input.setSelection(len);
         input.post(new Runnable() {
             @Override
@@ -322,6 +335,7 @@ public class SpellActivity extends Activity {
         refreshHeader();
         input.requestFocus();
         syncKeyboard();
+        maybeAutoSpeak(false);
     }
 
     private void onSubmit() {
@@ -355,7 +369,7 @@ public class SpellActivity extends Activity {
         }
         dao.markStash(current.id);
         current.flag = 1;
-        refreshHeader();
+        showNext();
     }
 
     private void showAnswer(boolean ok) {
@@ -386,17 +400,18 @@ public class SpellActivity extends Activity {
             answer.setText(current.word);
             answer.setVisibility(View.VISIBLE);
         }
+        maybeAutoSpeak(true);
     }
 
     private void refreshHeader() {
         ProgressStats s = dao.stats();
-        header.setText("拼写 会" + s.known + " 不会" + s.unknown);
+        header.setText(dao.bookTitle() + "  " + s.reviewLine());
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (current != null && RecognizeActivity.isSpeakKey(keyCode, event)) {
-            tts.speak(this, current.word);
+            speakCurrent();
             return true;
         }
         if (waitingNext) {

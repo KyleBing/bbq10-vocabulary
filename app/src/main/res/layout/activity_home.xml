@@ -82,16 +82,10 @@
         android:layout_height="12dp"
         android:layout_marginTop="8dp" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="6dp"
-        android:background="@color/line" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -102,27 +96,72 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
-            <Button
+            <LinearLayout
                 android:id="@+id/btnRecognize"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginRight="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/btn_home_block"
-                android:text="@string/mode_recognize"
-                android:textColor="@color/word"
-                android:textSize="20sp" />
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp">
 
-            <Button
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/mode_recognize"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/menu_learn" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/mode_recognize"
+                    android:textColor="@color/text_dim"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/btnSpell"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginLeft="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/btn_home_block"
-                android:text="@string/mode_spell"
-                android:textColor="@color/word"
-                android:textSize="20sp" />
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/mode_spell"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/menu_spell" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/mode_spell"
+                    android:textColor="@color/text_dim"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -131,27 +170,72 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
-            <Button
+            <LinearLayout
                 android:id="@+id/btnLookup"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginRight="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/btn_home_block"
-                android:text="@string/mode_lookup"
-                android:textColor="@color/word"
-                android:textSize="20sp" />
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp">
 
-            <Button
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/mode_lookup"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/menu_search" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/mode_lookup"
+                    android:textColor="@color/text_dim"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/btnLearned"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginLeft="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/btn_home_block"
-                android:text="@string/mode_learned"
-                android:textColor="@color/word"
-                android:textSize="20sp" />
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/mode_learned"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/menu_learned" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/mode_learned"
+                    android:textColor="@color/text_dim"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -165,7 +249,7 @@
             android:id="@+id/btnImport"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginRight="2dp"
+            android:layout_marginRight="4dp"
             android:layout_weight="1"
             android:background="@drawable/btn_home_bar"
             android:text="@string/mode_import"
@@ -176,8 +260,7 @@
             android:id="@+id/btnProgress"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp"
+            android:layout_marginRight="4dp"
             android:layout_weight="1"
             android:background="@drawable/btn_home_bar"
             android:text="@string/mode_progress"
@@ -185,10 +268,20 @@
             android:textSize="11sp" />
 
         <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/btn_home_bar"
+            android:text="@string/mode_settings"
+            android:textColor="@color/text"
+            android:textSize="11sp" />
+
+        <Button
             android:id="@+id/btnHelp"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginLeft="2dp"
             android:layout_weight="1"
             android:background="@drawable/btn_home_bar"
             android:text="@string/mode_help"

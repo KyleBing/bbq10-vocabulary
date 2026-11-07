@@ -80,6 +80,12 @@ public class HomeActivity extends Activity {
                 startActivity(new Intent(HomeActivity.this, LearnedActivity.class));
             }
         });
+        findViewById(R.id.btnSettings).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
+            }
+        });
         findViewById(R.id.btnHelp).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,7 +110,7 @@ public class HomeActivity extends Activity {
         final BuiltInBooks.Item[] books = BuiltInBooks.ALL;
         CharSequence[] labels = new CharSequence[books.length + 1];
         for (int i = 0; i < books.length; i++) {
-            labels[i] = books[i].title + "（内置）";
+            labels[i] = books[i].title + "（内置）  " + books[i].wordCount + " 词";
         }
         labels[books.length] = "从文件导入…";
 

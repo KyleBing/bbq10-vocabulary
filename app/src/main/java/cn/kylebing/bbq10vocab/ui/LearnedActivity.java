@@ -93,13 +93,13 @@ public class LearnedActivity extends Activity {
         SpannableStringBuilder sb = new SpannableStringBuilder();
         append(sb, "词库 ", COL_DIM);
         append(sb, String.valueOf(bookSize), COL_BOOK);
-        append(sb, "  ·  ", COL_DIM);
+        append(sb, "  ", COL_DIM);
         append(sb, "已会 ", COL_DIM);
         append(sb, String.valueOf(s.known), COL_KNOWN);
-        append(sb, "  ·  ", COL_DIM);
+        append(sb, "  ", COL_DIM);
         append(sb, "不会 ", COL_DIM);
         append(sb, String.valueOf(s.unknown), COL_UNKNOWN);
-        append(sb, "  ·  ", COL_DIM);
+        append(sb, "  ", COL_DIM);
         append(sb, "暂存 ", COL_DIM);
         append(sb, String.valueOf(s.stashed), COL_STASH);
         return sb;

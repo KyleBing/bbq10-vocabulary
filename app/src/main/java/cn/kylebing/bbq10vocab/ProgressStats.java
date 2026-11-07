@@ -17,4 +17,12 @@ public class ProgressStats {
             this.unseen = 0;
         }
     }
+
+    /** Plain header: 「会 12  不会 3  暂存 1  到期 0」（两项之间两个空格） */
+    public String reviewLine() {
+        return "会 " + known
+                + "  不会 " + unknown
+                + "  暂存 " + stashed
+                + "  到期 " + due;
+    }
 }

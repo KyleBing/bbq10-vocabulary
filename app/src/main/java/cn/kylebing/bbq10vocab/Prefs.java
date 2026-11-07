@@ -8,6 +8,13 @@ public final class Prefs {
     private static final String KEY_DB = "active_db";
     private static final String KEY_LIVE_SPELL = "live_spell";
     private static final String KEY_IME_SUGGEST = "ime_suggest";
+    private static final String KEY_AUTO_SPEAK = "auto_speak";
+    private static final String KEY_SPEAK_WHEN = "speak_when";
+    private static final String KEY_SPEAK_EXAMPLE = "speak_example";
+
+    /** Auto TTS timing relative to showing the answer/result. */
+    public static final int SPEAK_BEFORE_RESULT = 0;
+    public static final int SPEAK_AFTER_RESULT = 1;
 
     private Prefs() {
     }
@@ -39,6 +46,40 @@ public final class Prefs {
 
     public static void setImeSuggest(Context c, boolean on) {
         p(c).edit().putBoolean(KEY_IME_SUGGEST, on).commit();
+    }
+
+    /** Auto-speak current word during 识词 / 拼写. Default off. */
+    public static boolean autoSpeak(Context c) {
+        return p(c).getBoolean(KEY_AUTO_SPEAK, false);
+    }
+
+    public static void setAutoSpeak(Context c, boolean on) {
+        p(c).edit().putBoolean(KEY_AUTO_SPEAK, on).commit();
+    }
+
+    /** {@link #SPEAK_BEFORE_RESULT} or {@link #SPEAK_AFTER_RESULT}. */
+    public static int speakWhen(Context c) {
+        int v = p(c).getInt(KEY_SPEAK_WHEN, SPEAK_BEFORE_RESULT);
+        if (v != SPEAK_BEFORE_RESULT && v != SPEAK_AFTER_RESULT) {
+            return SPEAK_BEFORE_RESULT;
+        }
+        return v;
+    }
+
+    public static void setSpeakWhen(Context c, int when) {
+        if (when != SPEAK_BEFORE_RESULT && when != SPEAK_AFTER_RESULT) {
+            when = SPEAK_BEFORE_RESULT;
+        }
+        p(c).edit().putInt(KEY_SPEAK_WHEN, when).commit();
+    }
+
+    /** After the word, also read the English example sentence. Default off. */
+    public static boolean speakExample(Context c) {
+        return p(c).getBoolean(KEY_SPEAK_EXAMPLE, false);
+    }
+
+    public static void setSpeakExample(Context c, boolean on) {
+        p(c).edit().putBoolean(KEY_SPEAK_EXAMPLE, on).commit();
     }
 
     public static final class DbNames {

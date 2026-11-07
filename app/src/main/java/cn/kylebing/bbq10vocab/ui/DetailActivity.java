@@ -6,6 +6,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import cn.kylebing.bbq10vocab.Prefs;
 import cn.kylebing.bbq10vocab.R;
 import cn.kylebing.bbq10vocab.VocabApp;
 import cn.kylebing.bbq10vocab.Word;
@@ -46,12 +47,6 @@ public class DetailActivity extends Activity {
             exampleEn.setVisibility(View.GONE);
             exampleCn.setVisibility(View.GONE);
         }
-        findViewById(R.id.btnSpeak).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tts.speak(DetailActivity.this, current.word);
-            }
-        });
         findViewById(R.id.btnUnknown).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,12 +68,15 @@ public class DetailActivity extends Activity {
                 finish();
             }
         });
+        if (Prefs.autoSpeak(this)) {
+            tts.speakWord(this, current, Prefs.speakExample(this));
+        }
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (current != null && RecognizeActivity.isSpeakKey(keyCode, event)) {
-            tts.speak(this, current.word);
+            tts.speakWord(this, current, Prefs.speakExample(this));
             return true;
         }
         return super.onKeyDown(keyCode, event);

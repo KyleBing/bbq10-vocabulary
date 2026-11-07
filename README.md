@@ -6,13 +6,12 @@ BlackBerry Q10（720×720 / Android 4.3）英语词库 App。
 
 ```bash
 ./gradlew :app:assembleDebug
-# 本地预览（下载链到同目录 APK）：
-python3 scripts/prepare_site.py --local
-python3 -m http.server 8765 --directory site
-# 或：./scripts/publish_dist.sh && python3 -m http.server 8765 --directory dist
+# 本地下载页（只挂本机构建的 APK，样式/内容与线上 Pages 不同）：
+./scripts/serve_local.sh          # 默认 http://127.0.0.1:8765/
+# 或：python3 scripts/prepare_site.py --local && python3 -m http.server 8765 --directory dist-local --bind 127.0.0.1
 ```
 
-APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。
+APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。本地页输出在 `dist-local/`；线上 Pages 仍用 `site/`（Release 链接 + 扩展词库）。
 
 ## CI
 
@@ -23,4 +22,4 @@ APK 文件名：`Vocabulary-<versionName>.apk`（见 `app/build.gradle`）。
 首次部署请在仓库 Settings → Pages → Source 选择 **GitHub Actions**。
 
 站点地址：`https://kylebing.github.io/bbq10-vocabulary/`  
-页面 APK 下载链到 **GitHub Release**；扩展词库仍由 Pages 提供。本地预览用 `prepare_site.py --local` / `publish_dist.sh`。内置词库用 App 内「切换词库」，扩展库用「从文件导入」。
+页面 APK 下载链到 **GitHub Release**；扩展词库仍由 Pages 提供。本机调试下载用 `./scripts/serve_local.sh`（`dist-local/`，仅 APK）。内置词库用 App 内「切换词库」，扩展库用「从文件导入」。

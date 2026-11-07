@@ -15,6 +15,7 @@ local.properties
 
 # Local download server leftovers
 /dist/*.apk
+/dist-local/
 /site/
 
 # Local regenerable copies (canonical download DBs live in web/wordbooks/)
