@@ -1,3 +1,7 @@
+
+
+<img src="design/ic_launcher_1024.png" width="120" alt="App icon" />
+
 # BBQ10 Vocabulary
 
 BlackBerry Q10（720×720 / Android 4.3）英语词库 App。
