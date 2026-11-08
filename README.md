@@ -2,6 +2,18 @@
 
 BlackBerry Q10（720×720 / Android 4.3）英语词库 App。
 
+
+
+
+<img width="2000" height="1333" alt="2026-11-08 黑莓q10-vocabulary-10-2000x2000" src="https://github.com/user-attachments/assets/c7fcfbc7-134e-4642-9944-e76c53824f0d" />
+
+
+
+非常喜欢黑莓键盘，好在Q10 还支持安卓应用，就开发了这么一个学习单词的 app，打英文真的是太爽了。
+
+词库使用的 https://github.com/KyleBing/english-vocabulary  
+下载地址： https://kylebing.github.io/bbq10-vocabulary/
+
 ## 本地构建
 
 ```bash
